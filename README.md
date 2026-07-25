@@ -64,7 +64,7 @@ respostas de navegação principal no HAR, mesmo com "Save all as HAR with conte
 
 ## Variáveis de ambiente (backend)
 
-| Variável           | Padrão                     | Descrição                     |
+| Variável            | Padrão                     | Descrição                      |
 |---------------------|----------------------------|--------------------------------|
-| `PORT`              | `4000`                      | Porta do backend               |
+| `PORT`              | `4000`                     | Porta do backend               |
 | `FRONTEND_ORIGIN`   | `http://localhost:5173`    | Origem liberada no CORS        |
