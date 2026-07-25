@@ -43,10 +43,6 @@ export async function fetchSearchResultsHtml(
   return typeof res.data === 'string' ? res.data : '';
 }
 
-// Assumptions pending confirmation from a fuller HAR capture of the salva-face request/response.
-// Adjust FOTOP_SELFIE_FIELD_NAME (env var) once the real multipart field name is known.
-const SELFIE_FIELD_NAME = process.env.FOTOP_SELFIE_FIELD_NAME ?? 'foto';
-
 export interface SelfieSearchResult {
   success: boolean;
   raw: unknown;
@@ -60,12 +56,22 @@ export async function sendSelfie(
   const jar = getOrCreateJar(potofSessionId);
   const client = buildClient(jar);
 
+  // Field names and empty crop values mirror the real #formReconhecimento markup on
+  // fotos/eventos?evento={id}: cropx/y/w/h and wresponsive/hresponsive stay blank whenever
+  // the user doesn't manually crop (e.g. picking straight from gallery/camera).
   const form = new FormData();
-  form.append(SELFIE_FIELD_NAME, file.buffer, {
+  form.append('cropx', '');
+  form.append('cropy', '');
+  form.append('cropw', '');
+  form.append('croph', '');
+  form.append('wresponsive', '');
+  form.append('hresponsive', '');
+  form.append('evento', eventId);
+  form.append('order', '');
+  form.append('selfie', file.buffer, {
     filename: file.filename,
     contentType: file.mimeType,
   });
-  form.append('evento', eventId);
 
   const res = await client.post('/fotos/eventos/salva-face', form, {
     headers: form.getHeaders(),

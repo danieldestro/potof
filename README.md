@@ -44,26 +44,27 @@ Acesse `http://localhost:5173/evento/{id}` (ex: `300101`).
 
 ## Itens em aberto (assunções pendentes de confirmação)
 
-Um HAR de navegação real confirmou a estrutura do grid de fotos e o modelo de dados (visto
-nas respostas de `commerceft/cesta/*` e na página de produto), mas duas chamadas ficaram sem
-corpo de resposta capturado no HAR:
+Dois HARs de navegação real confirmaram a estrutura do grid de fotos, o modelo de dados
+(visto nas respostas de `commerceft/cesta/*` e na página de produto) e o formulário real de
+envio da selfie (`#formReconhecimento` em `fotos/eventos?evento={id}`): campo do arquivo é
+`selfie`, acompanhado de `evento`, `order` e os campos de recorte `cropx/cropy/cropw/croph/
+wresponsive/hresponsive` (enviados vazios quando o usuário não recorta manualmente, que é o
+fluxo replicado pelo backend).
 
-- **`POST /fotos/eventos/salva-face`**: não temos o nome real do campo do multipart nem o
-  formato do JSON de resposta (204 bytes). Hoje o backend usa um valor padrão configurável
-  via `FOTOP_SELFIE_FIELD_NAME` (default `"foto"`) em
-  `backend/src/fotop/fotopClient.ts`. **Ajustar assim que confirmado.**
+Ainda não foi possível capturar (o Chrome não retém corpo de upload de arquivo nem de
+respostas de navegação principal no HAR, mesmo com "Save all as HAR with content"):
+
+- **Resposta JSON do `salva-face`** (204 bytes): formato exato de sucesso/erro ainda não
+  confirmado. O backend hoje só checa o status HTTP e repassa o corpo cru (`raw`) para o
+  frontend — ajustar a interpretação assim que confirmado.
 - **`GET /fotos/eventos/busca/evento/{id}/rc/1`** pós-selfie: a estrutura do grid foi inferida
   da página de produto (`commerceft/produtos/foto/...`), que reaproveita o mesmo layout —
-  mas vale confirmar que essa é de fato a lista filtrada pelo rosto, e não o álbum completo
-  do evento.
-
-Para resolver, capture um HAR com **"Save all as HAR with content"** no DevTools (Network,
-clique direito) durante o fluxo: abrir evento → enviar selfie → ver resultado.
+  vale confirmar que essa é de fato a lista filtrada pelo rosto, e não o álbum completo do
+  evento.
 
 ## Variáveis de ambiente (backend)
 
-| Variável                    | Padrão                     | Descrição                                   |
-|------------------------------|----------------------------|----------------------------------------------|
-| `PORT`                        | `4000`                      | Porta do backend                              |
-| `FRONTEND_ORIGIN`              | `http://localhost:5173`    | Origem liberada no CORS                       |
-| `FOTOP_SELFIE_FIELD_NAME`      | `foto`                      | Nome do campo multipart enviado a `salva-face`|
+| Variável           | Padrão                     | Descrição                     |
+|---------------------|----------------------------|--------------------------------|
+| `PORT`              | `4000`                      | Porta do backend               |
+| `FRONTEND_ORIGIN`   | `http://localhost:5173`    | Origem liberada no CORS        |
