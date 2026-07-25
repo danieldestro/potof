@@ -1,0 +1,27 @@
+{
+  "name": "potof-backend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^9.3.1",
+    "@fastify/cors": "^9.0.1",
+    "@fastify/multipart": "^8.3.0",
+    "axios": "^1.7.7",
+    "axios-cookiejar-support": "^5.0.3",
+    "cheerio": "^1.0.0",
+    "fastify": "^4.28.1",
+    "form-data": "^4.0.0",
+    "tough-cookie": "^4.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "@types/tough-cookie": "^4.0.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}
