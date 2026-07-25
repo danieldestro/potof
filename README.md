@@ -35,32 +35,30 @@ Acesse `http://localhost:5173/evento/{id}` (ex: `300101`).
 
 1. `POST /api/eventos/:id/selfie` — garante a sessão fotop (visita `fotos/eventos?evento={id}`)
    e reencaminha a selfie (multipart) para `fotos/eventos/salva-face`.
-2. `GET /api/eventos/:id/fotos` — busca `fotos/eventos/busca/evento/{id}/rc/{n}` (incrementando
-   `rc` até vir uma página vazia — hoje não há paginação real, mas o backend já suporta se
-   passar a existir) e retorna as fotos como JSON.
+2. `GET /api/eventos/:id/fotos` — busca `fotos/eventos/busca/evento/{id}/rc/{n}`, avançando
+   `rc` enquanto cada página trouxer fotos com `data-id` novos. Hoje `rc/{n}` não pagina de
+   verdade (toda página devolve o mesmo grid completo), então o backend para assim que uma
+   página não traz nenhum id novo — evita duplicar o resultado 20x.
 3. Frontend: upload de selfie → grid de fotos encontradas → visualizador em tela cheia com
    navegação por seta do teclado, swipe e botões → favoritos salvos em `localStorage` por
    evento (sem persistência no servidor, por ora).
 
-## Itens em aberto (assunções pendentes de confirmação)
+Toda a cadeia de chamadas ao fotop.com.br loga via `request.log` (pino, já embutido no
+Fastify): status HTTP, cookies de sessão, tamanho do HTML e se o grid foi encontrado —
+essencial para depurar quando o site mudar algo sem aviso.
 
-Dois HARs de navegação real confirmaram a estrutura do grid de fotos, o modelo de dados
-(visto nas respostas de `commerceft/cesta/*` e na página de produto) e o formulário real de
-envio da selfie (`#formReconhecimento` em `fotos/eventos?evento={id}`): campo do arquivo é
-`selfie`, acompanhado de `evento`, `order` e os campos de recorte `cropx/cropy/cropw/croph/
-wresponsive/hresponsive` (enviados vazios quando o usuário não recorta manualmente, que é o
-fluxo replicado pelo backend).
+## Confirmado contra o fotop.com.br real
 
-Ainda não foi possível capturar (o Chrome não retém corpo de upload de arquivo nem de
-respostas de navegação principal no HAR, mesmo com "Save all as HAR with content"):
-
-- **Resposta JSON do `salva-face`** (204 bytes): formato exato de sucesso/erro ainda não
-  confirmado. O backend hoje só checa o status HTTP e repassa o corpo cru (`raw`) para o
-  frontend — ajustar a interpretação assim que confirmado.
-- **`GET /fotos/eventos/busca/evento/{id}/rc/1`** pós-selfie: a estrutura do grid foi inferida
-  da página de produto (`commerceft/produtos/foto/...`), que reaproveita o mesmo layout —
-  vale confirmar que essa é de fato a lista filtrada pelo rosto, e não o álbum completo do
-  evento.
+- **Resposta JSON do `salva-face`**: `{ imagem, idEvento, url, status }`, onde `url` é o path
+  de `/fotos/eventos/busca/evento/{id}/rc/1` a ser buscado em seguida.
+- **Grid de resultados** (`GET /fotos/eventos/busca/evento/{id}/rc/{n}`): cada card é
+  `.foto-selecionar[data-id]` — não `.foto-item` (essa classe só aparece morta em `<script>`).
+  Cards de vídeo usam a mesma classe (`data-tipo="video"`), então fotos são distinguidas pela
+  miniatura estar em `span.fotoCorredor img.fotoDarkBlur` (vídeos não têm esse wrapper). O
+  link do produto vem do `href` de `button.foto-detalhes`, não de um `<a>` na miniatura.
+- **Zero resultados**: fotop renderiza `#resultado .alert_box.error` com uma mensagem
+  ("Infelizmente não encontramos resultados para essa busca neste evento") em vez de qualquer
+  markup de foto — o backend extrai esse texto e devolve em `message` no JSON de `/fotos`.
 
 ## Variáveis de ambiente (backend)
 

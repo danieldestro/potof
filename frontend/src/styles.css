@@ -26,9 +26,13 @@ button {
 .home-page,
 .evento-page {
   min-height: 100vh;
-  padding: 24px 16px 48px;
   max-width: 960px;
   margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.evento-page {
+  padding-top: 8px;
 }
 
 .home-page {
@@ -73,15 +77,12 @@ button {
 }
 
 .evento-page__header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
   margin-bottom: 16px;
 }
 
-.evento-page__event-id {
-  color: var(--potof-muted);
-  font-size: 0.875rem;
+.evento-page__header h1 {
+  margin: 0;
+  font-size: 1.25rem;
 }
 
 .selfie-upload {
