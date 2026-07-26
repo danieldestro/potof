@@ -6,7 +6,8 @@ interface SelfieUploadProps {
 }
 
 export function SelfieUpload({ onSearch, loading }: SelfieUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -23,28 +24,72 @@ export function SelfieUpload({ onSearch, loading }: SelfieUploadProps) {
   }
 
   return (
-    <div className="selfie-upload">
-      <p className="selfie-upload__hint">Envie uma selfie para encontrar suas fotos neste evento.</p>
+    <div className="selfie-upload potof-card">
+      <div className="selfie-upload__avatar">
+        {preview ? (
+          <img src={preview} alt="Prévia da selfie" />
+        ) : (
+          <div className="selfie-upload__avatar-placeholder" />
+        )}
+      </div>
 
-      {preview && <img className="selfie-upload__preview" src={preview} alt="Prévia da selfie" />}
+      <h2 className="selfie-upload__title">Encontre suas fotos</h2>
+      <p className="selfie-upload__hint">
+        Envie uma selfie de rosto e usaremos reconhecimento facial para localizar automaticamente
+        todas as suas fotos deste evento.
+      </p>
 
       <input
-        ref={inputRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="user"
         onChange={handleFileChange}
         hidden
       />
+      <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 
       <div className="selfie-upload__actions">
-        <button type="button" onClick={() => inputRef.current?.click()} disabled={loading}>
-          {preview ? 'Trocar foto' : 'Selecionar selfie'}
+        <button
+          type="button"
+          className="potof-btn potof-btn--outline"
+          onClick={() => cameraInputRef.current?.click()}
+          disabled={loading}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 8h3l2-2h6l2 2h3v11H4V8Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <circle cx="12" cy="13" r="3.2" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          Tirar foto
         </button>
-        <button type="button" onClick={handleSubmit} disabled={!selectedFile || loading}>
-          {loading ? 'Buscando...' : 'Buscar minhas fotos'}
+        <button
+          type="button"
+          className="potof-btn potof-btn--outline"
+          onClick={() => galleryInputRef.current?.click()}
+          disabled={loading}
+        >
+          {preview ? 'Trocar foto' : 'Enviar foto'}
         </button>
       </div>
+
+      <button
+        type="button"
+        className="potof-btn potof-btn--primary selfie-upload__submit"
+        onClick={handleSubmit}
+        disabled={!selectedFile || loading}
+      >
+        {loading ? 'Buscando...' : 'Buscar minhas fotos'}
+      </button>
+
+      <p className="selfie-upload__disclaimer">
+        Ao prosseguir, você aceita nossa política de privacidade e o uso da sua imagem para
+        encontrar suas fotos.
+      </p>
     </div>
   );
 }

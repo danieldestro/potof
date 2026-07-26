@@ -8,6 +8,7 @@ interface PhotoViewerProps {
   onClose: () => void;
   isFavorite: (photoId: string) => boolean;
   onToggleFavorite: (photoId: string) => void;
+  favoritesCount: number;
 }
 
 const SWIPE_THRESHOLD_PX = 50;
@@ -19,6 +20,7 @@ export function PhotoViewer({
   onClose,
   isFavorite,
   onToggleFavorite,
+  favoritesCount,
 }: PhotoViewerProps) {
   const touchStartX = useRef<number | null>(null);
   const photo = photos[index];
@@ -63,41 +65,49 @@ export function PhotoViewer({
 
   return (
     <div className="photo-viewer" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <button type="button" className="photo-viewer__close" onClick={onClose} aria-label="Fechar">
-        ×
-      </button>
+      <div className="photo-viewer__panel">
+        <button type="button" className="photo-viewer__close" onClick={onClose} aria-label="Fechar">
+          ×
+        </button>
 
-      <button
-        type="button"
-        className="photo-viewer__nav photo-viewer__nav--prev"
-        onClick={goPrev}
-        aria-label="Foto anterior"
-      >
-        ‹
-      </button>
+        <button
+          type="button"
+          className="photo-viewer__nav photo-viewer__nav--prev"
+          onClick={goPrev}
+          aria-label="Foto anterior"
+        >
+          ‹
+        </button>
 
-      <img className="photo-viewer__image" src={photo.thumbs.g} alt="" />
+        <img className="photo-viewer__image" src={photo.thumbs.g} alt="" />
 
-      <button
-        type="button"
-        className="photo-viewer__nav photo-viewer__nav--next"
-        onClick={goNext}
-        aria-label="Próxima foto"
-      >
-        ›
-      </button>
+        <button
+          type="button"
+          className="photo-viewer__nav photo-viewer__nav--next"
+          onClick={goNext}
+          aria-label="Próxima foto"
+        >
+          ›
+        </button>
 
-      <button
-        type="button"
-        className={`photo-viewer__favorite${isFavorite(photo.id) ? ' is-active' : ''}`}
-        onClick={() => onToggleFavorite(photo.id)}
-        aria-label="Favoritar"
-      >
-        {isFavorite(photo.id) ? '♥' : '♡'}
-      </button>
+        <div className="photo-viewer__footer">
+          <button
+            type="button"
+            className={`photo-viewer__favorite${isFavorite(photo.id) ? ' is-active' : ''}`}
+            onClick={() => onToggleFavorite(photo.id)}
+            aria-label="Favoritar"
+          >
+            {isFavorite(photo.id) ? '♥' : '♡'}
+          </button>
 
-      <div className="photo-viewer__counter">
-        {index + 1} / {photos.length}
+          <div className="photo-viewer__counter">
+            {index + 1} de {photos.length}
+          </div>
+
+          <div className="photo-viewer__fav-count" aria-label={`${favoritesCount} fotos favoritas`}>
+            <span aria-hidden="true">♥</span> {favoritesCount}
+          </div>
+        </div>
       </div>
     </div>
   );

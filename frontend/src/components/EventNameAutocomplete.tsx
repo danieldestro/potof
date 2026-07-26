@@ -1,0 +1,110 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { searchEventosPorNome } from '../api/client';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import type { EventNameSuggestion } from '../types';
+
+const MIN_QUERY_LENGTH = 3;
+
+interface EventNameAutocompleteProps {
+  estado?: string;
+}
+
+export function EventNameAutocomplete({ estado }: EventNameAutocompleteProps) {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<EventNameSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const debouncedQuery = useDebouncedValue(query.trim(), 350);
+
+  useEffect(() => {
+    if (debouncedQuery.length < MIN_QUERY_LENGTH) {
+      setSuggestions([]);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
+    searchEventosPorNome({ nome: debouncedQuery, estado })
+      .then((res) => {
+        if (cancelled) return;
+        setSuggestions(res.events);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSuggestions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery, estado]);
+
+  function handleSelect(eventId: string) {
+    setOpen(false);
+    setQuery('');
+    setSuggestions([]);
+    navigate(`/evento/${eventId}`);
+  }
+
+  const showDropdown = open && query.trim().length >= MIN_QUERY_LENGTH;
+
+  return (
+    <div className="home-hero__search">
+      <input
+        type="text"
+        placeholder="Buscar evento pelo nome"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+      />
+      <button type="button" aria-label="Buscar" tabIndex={-1}>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2.4" />
+          <line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+
+      {showDropdown && (
+        <div className="home-autocomplete">
+          {loading ? (
+            <div className="home-autocomplete__hint">Buscando…</div>
+          ) : suggestions.length === 0 ? (
+            <div className="home-autocomplete__hint">Nenhum evento encontrado.</div>
+          ) : (
+            suggestions.map((event) => (
+              <button
+                key={event.id}
+                type="button"
+                className="home-autocomplete__item"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleSelect(event.id)}
+              >
+                <span className="home-autocomplete__item-name">{event.name}</span>
+                <span className="home-autocomplete__item-meta">
+                  {event.location}
+                  {event.date ? ` · ${event.date}` : ''}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

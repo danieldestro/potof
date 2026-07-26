@@ -1,0 +1,177 @@
+/* fi-estacao-* event-category icon font.
+   Extracted from https://fotop.com/publico/shared/dist/css/home.min.css?v=4 — the
+   "fotopicon" icon font fotop.com uses for event category (estacao) icons. Font files are
+   self-hosted under /fonts/ (see public/fonts/fotopicon.*) instead of pointing at fotop.com.
+   Class ids match frontend/src/data/eventTypes.ts (`fi-estacao-{EVENT_TYPES[].id}`).
+
+   No woff2: fotop.com's own fotopicon.woff2 is a stale build missing every estacao glyph
+   (confirmed by comparing rendered output against .ttf/.woff, which are current and
+   correct — and are the only two formats fotop.com's own CSS actually references). */
+
+@font-face {
+  font-display: block;
+  font-family: fotopicon;
+  font-style: normal;
+  font-weight: 400;
+  src:
+    url('/fonts/fotopicon.woff') format('woff'),
+    url('/fonts/fotopicon.ttf') format('truetype');
+}
+
+[class*=" fi-"],
+[class^="fi-"] {
+  font-family: fotopicon !important;
+  speak: never;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fi-corridaderua:before,.fi-estacao-1:before{content:""}
+.fi-estacao-2:before,.fi-rally:before{content:""}
+.fi-estacao-3:before,.fi-futebol:before{content:""}
+.fi-ciclismo:before,.fi-estacao-4:before{content:""}
+.fi-estacao-9:before,.fi-tenis:before{content:""}
+.fi-duathlon:before,.fi-estacao-11:before,.fi-triathlon:before{content:""}
+.fi-corridaderua1:before,.fi-estacao-12:before{content:""}
+.fi-estacao-13:before,.fi-eventosocial:before{content:""}
+.fi-ensaio:before,.fi-estacao-14:before{content:""}
+.fi-estacao-15:before,.fi-estacao-5:before,.fi-outros:before{content:""}
+.fi-estacao-16:before,.fi-surf:before{content:""}
+.fi-esportesamotor:before,.fi-estacao-17:before{content:""}
+.fi-corridatrail:before,.fi-estacao-18:before{content:""}
+.fi-escolar:before,.fi-estacao-19:before{content:""}
+.fi-estacao-20:before,.fi-turismo:before{content:""}
+.fi-estacao-21:before,.fi-rally1:before{content:""}
+.fi-estacao-22:before,.fi-treinos:before{content:""}
+.fi-estacao-23:before,.fi-formatura:before{content:""}
+.fi-acampamentos:before,.fi-estacao-24:before{content:""}
+.fi-basquete:before,.fi-estacao-25:before{content:""}
+.fi-beachtennis:before,.fi-estacao-26:before{content:""}
+.fi-crossfit:before,.fi-estacao-27:before{content:""}
+.fi-estacao-28:before,.fi-futevolei:before{content:""}
+.fi-ballet:before,.fi-estacao-29:before{content:""}
+.fi-estacao-30:before,.fi-ginasticaartistica:before{content:""}
+.fi-estacao-31:before,.fi-golfe:before{content:""}
+.fi-estacao-32:before,.fi-hipismo:before{content:""}
+.fi-estacao-33:before,.fi-natacao:before{content:""}
+.fi-estacao-34:before,.fi-volei:before{content:""}
+.fi-baseball:before,.fi-estacao-35:before{content:""}
+.fi-estacao-36:before,.fi-handball:before{content:""}
+.fi-estacao-37:before,.fi-rugby:before{content:""}
+.fi-estacao-38:before,.fi-futebolamericano:before{content:""}
+.fi-esportesaquaticos:before,.fi-estacao-39:before{content:""}
+.fi-estacao-40:before,.fi-padel:before{content:""}
+.fi-corridadeobstaculos:before,.fi-estacao-41:before{content:""}
+.fi-airsoft:before,.fi-estacao-42:before{content:""}
+.fi-atletismo:before,.fi-estacao-43:before{content:""}
+.fi-badminton:before,.fi-estacao-44:before{content:""}
+.fi-beach-soccer:before,.fi-estacao-45:before{content:""}
+.fi-canoagem:before,.fi-estacao-46:before{content:""}
+.fi-danca:before,.fi-estacao-47:before{content:""}
+.fi-Equestre:before,.fi-estacao-48:before{content:""}
+.fi-estacao-49:before,.fi-hockey:before{content:""}
+.fi-estacao-50:before,.fi-ioga:before{content:""}
+.fi-Kitesurf:before,.fi-estacao-51:before{content:""}
+.fi-estacao-52:before,.fi-mergulho:before{content:""}
+.fi-estacao-53:before,.fi-paintball:before{content:""}
+.fi-estacao-54:before,.fi-patinacao:before{content:""}
+.fi-estacao-55:before,.fi-pescaria:before{content:""}
+.fi-estacao-56:before,.fi-pickleball:before{content:""}
+.fi-Pilates:before,.fi-estacao-57:before{content:""}
+.fi-estacao-58:before,.fi-rodeio:before{content:""}
+.fi-Skate:before,.fi-estacao-59:before{content:""}
+.fi-estacao-60:before,.fi-tenis-de-mesa:before{content:""}
+.fi-capoeira:before,.fi-estacao-61:before{content:""}
+.fi-estacao-62:before,.fi-fisiculturismo:before{content:""}
+.fi-estacao-63:before,.fi-futsal:before{content:""}
+.fi-estacao-64:before,.fi-iatismo:before{content:""}
+.fi-estacao-65:before,.fi-jiu-jtzu:before{content:""}
+.fi-estacao-66:before,.fi-judo:before{content:""}
+.fi-estacao-67:before,.fi-karate:before{content:""}
+.fi-estacao-68:before,.fi-motociclismo:before{content:""}
+.fi-estacao-69:before,.fi-motocross:before{content:""}
+.fi-estacao-70:before,.fi-muay-thai:before{content:""}
+.fi-estacao-71:before,.fi-paraquedismo:before{content:""}
+.fi-estacao-72:before,.fi-parapente:before{content:""}
+.fi-estacao-73:before,.fi-pets:before{content:""}
+.fi-estacao-74:before,.fi-polo-aquatico:before{content:""}
+.fi-estacao-75:before,.fi-xadrez:before{content:""}
+.fi-carnaval:before,.fi-estacao-77:before{content:""}
+.fi-estacao-78:before,.fi-show-festival:before{content:""}
+.fi-estacao-79:before,.fi-hyrox:before{color:#5c5c5c;content:""}
+.fi-estacao-80:before,.fi-moda:before{color:#5c5c5c;content:""}
+.fi-estacao-91:before,.fi-tenis1:before{content:""}
+.fi-duathlon1:before,.fi-estacao-111:before,.fi-triathlon1:before{content:""}
+.fi-artemarcial:before,.fi-estacao-121:before{content:""}
+.fi-artemarcial1:before,.fi-estacao-122:before{content:""}
+.fi-estacao-131:before,.fi-eventosocial1:before{content:""}
+.fi-ensaio1:before,.fi-estacao-141:before{content:""}
+.fi-estacao-151:before,.fi-estacao-510:before,.fi-outros1:before{content:""}
+.fi-estacao-161:before,.fi-surf1:before{content:""}
+.fi-esportesamotor1:before,.fi-estacao-171:before{content:""}
+.fi-corridatrail1:before,.fi-estacao-181:before{content:""}
+.fi-escolar1:before,.fi-estacao-191:before{content:""}
+.fi-estacao-201:before,.fi-turismo1:before{content:""}
+.fi-estacao-221:before,.fi-treinos1:before{content:""}
+.fi-estacao-231:before,.fi-formatura1:before{content:""}
+.fi-acampamentos1:before,.fi-estacao-241:before{content:""}
+.fi-basquete1:before,.fi-estacao-251:before{content:""}
+.fi-beachtennis1:before,.fi-estacao-261:before{content:""}
+.fi-crossfit1:before,.fi-estacao-271:before{content:""}
+.fi-estacao-281:before,.fi-futevolei1:before{content:""}
+.fi-ballet1:before,.fi-estacao-291:before{content:""}
+.fi-estacao-301:before,.fi-ginasticaartistica1:before{content:""}
+.fi-estacao-310:before,.fi-futebol1:before{content:""}
+.fi-estacao-311:before,.fi-golfe1:before{content:""}
+.fi-estacao-321:before,.fi-hipismo1:before{content:""}
+.fi-estacao-331:before,.fi-natacao1:before{content:""}
+.fi-estacao-341:before,.fi-volei1:before{content:""}
+.fi-baseball1:before,.fi-estacao-351:before{content:""}
+.fi-estacao-361:before,.fi-handball1:before{content:""}
+.fi-estacao-371:before,.fi-rugby1:before{content:""}
+.fi-estacao-381:before,.fi-futebolamericano1:before{content:""}
+.fi-esportesaquaticos1:before,.fi-estacao-391:before{content:""}
+.fi-estacao-401:before,.fi-padel1:before{content:""}
+.fi-ciclismo1:before,.fi-estacao-410:before{content:""}
+.fi-corridadeobstaculos1:before,.fi-estacao-411:before{content:""}
+.fi-airsoft1:before,.fi-estacao-421:before{content:""}
+.fi-atletismo1:before,.fi-estacao-431:before{content:""}
+.fi-badminton1:before,.fi-estacao-441:before{content:""}
+.fi-beach-soccer1:before,.fi-estacao-451:before{content:""}
+.fi-canoagem1:before,.fi-estacao-461:before{content:""}
+.fi-danca1:before,.fi-estacao-471:before{content:""}
+.fi-Equestre1:before,.fi-estacao-481:before{content:""}
+.fi-estacao-491:before,.fi-hockey1:before{content:""}
+.fi-estacao-501:before,.fi-ioga1:before{content:""}
+.fi-Kitesurf1:before,.fi-estacao-511:before{content:""}
+.fi-estacao-521:before,.fi-mergulho1:before{content:""}
+.fi-estacao-531:before,.fi-paintball1:before{content:""}
+.fi-estacao-541:before,.fi-patinacao1:before{content:""}
+.fi-estacao-551:before,.fi-pescaria1:before{content:""}
+.fi-estacao-561:before,.fi-pickleball1:before{content:""}
+.fi-Pilates1:before,.fi-estacao-571:before{content:""}
+.fi-estacao-581:before,.fi-rodeio1:before{content:""}
+.fi-Skate1:before,.fi-estacao-591:before{content:""}
+.fi-estacao-601:before,.fi-tenis-de-mesa1:before{content:""}
+.fi-capoeira1:before,.fi-estacao-611:before{content:""}
+.fi-estacao-621:before,.fi-fisiculturismo1:before{content:""}
+.fi-estacao-631:before,.fi-futsal1:before{content:""}
+.fi-estacao-641:before,.fi-iatismo1:before{content:""}
+.fi-estacao-651:before,.fi-jiu-jtzu1:before{content:""}
+.fi-estacao-661:before,.fi-judo1:before{content:""}
+.fi-estacao-671:before,.fi-karate1:before{content:""}
+.fi-estacao-681:before,.fi-motociclismo1:before{content:""}
+.fi-estacao-691:before,.fi-motocross1:before{content:""}
+.fi-estacao-701:before,.fi-muay-thai1:before{content:""}
+.fi-estacao-711:before,.fi-paraquedismo1:before{content:""}
+.fi-estacao-721:before,.fi-parapente1:before{content:""}
+.fi-estacao-731:before,.fi-pets1:before{content:""}
+.fi-estacao-741:before,.fi-polo-aquatico1:before{content:""}
+.fi-estacao-751:before,.fi-xadrez1:before{content:""}
+.fi-carnaval1:before,.fi-estacao-771:before{content:""}
+.fi-estacao-781:before,.fi-show-festival1:before{content:""}

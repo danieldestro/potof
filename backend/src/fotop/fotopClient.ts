@@ -6,6 +6,9 @@ import type { FastifyBaseLogger } from 'fastify';
 import { getOrCreateJar } from './cookieSession';
 
 export const FOTOP_BASE_URL = 'https://fotop.com.br';
+export const FOTOP_PHOTOS_BASE_URL = 'https://photos.fotop.com';
+// Yes, a different domain (no ".br") — the name-autocomplete webservice only exists here.
+export const FOTOP_WEB_BASE_URL = 'https://fotop.com';
 
 const noopLogger: FastifyBaseLogger = {
   info: () => {},
@@ -102,6 +105,122 @@ export async function fetchSearchResultsHtml(
   }
 
   return html;
+}
+
+// Raw shape returned by GET /fotos/eventos/busca-eventos/ — a plain JSON array, no
+// wrapper/pagination metadata. `id_estacoes` is the event's category id (matches the ids in
+// frontend/src/data/eventTypes.ts); `estado` matches frontend/src/data/estados.ts ids.
+export interface FotopEventoRaw {
+  id_produtos_eventos: string;
+  nome: string;
+  data: string | null;
+  data_fim: string | null;
+  cidade: string;
+  estado: string;
+  local: string;
+  tem_foto_evento: string | null;
+  id_estacoes: string;
+  senha: boolean;
+  qtd_fotos: string;
+  data_inicio: string | null;
+}
+
+// This endpoint is public and stateless (confirmed: works with no cookies at all), unlike the
+// rest of fotopClient which threads a per-potof-session cookie jar through an event's own
+// face-search flow — so it uses a plain one-off request instead of buildClient/getOrCreateJar.
+export interface FetchEventosBuscaParams {
+  page: number;
+  estado?: string;
+  cat?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  nomeEvento?: string;
+}
+
+export async function fetchEventosBusca(
+  params: FetchEventosBuscaParams,
+  logger: FastifyBaseLogger = noopLogger
+): Promise<FotopEventoRaw[]> {
+  const res = await axios.get(`${FOTOP_BASE_URL}/fotos/eventos/busca-eventos/`, {
+    headers: BROWSER_HEADERS,
+    validateStatus: () => true,
+    params: {
+      pag: params.page,
+      estado: params.estado ?? '',
+      cat: params.cat ?? '',
+      pais: 'BR',
+      status: 'ativo',
+      dataInicio: params.dataInicio ?? '',
+      dataFim: params.dataFim ?? '',
+      nome_evento: params.nomeEvento ?? '',
+    },
+  });
+
+  const events = Array.isArray(res.data) ? (res.data as FotopEventoRaw[]) : [];
+
+  logger.info(
+    {
+      page: params.page,
+      estado: params.estado,
+      cat: params.cat,
+      dataInicio: params.dataInicio,
+      dataFim: params.dataFim,
+      nomeEvento: params.nomeEvento,
+      status: res.status,
+      count: events.length,
+    },
+    'fotop: fetchEventosBusca response'
+  );
+
+  if (res.status >= 400) {
+    logger.warn({ status: res.status, body: preview(res.data) }, 'fotop: fetchEventosBusca returned an error status');
+  }
+
+  return events;
+}
+
+// Raw shape from GET /fotos/webservices/eventos/nome-eventos on fotop.com (name-autocomplete,
+// separate webservice from the busca-eventos listing above). "local" arrives pre-formatted
+// as "Cidade - UF" rather than split fields.
+export interface FotopEventoNomeRaw {
+  nome: string;
+  id: string;
+  data: string;
+  local: string;
+  slug: string;
+  busca: boolean;
+  facial: boolean;
+  status: string;
+  parceiro: string;
+}
+
+export async function searchEventosPorNome(
+  params: { nome: string; estado?: string },
+  logger: FastifyBaseLogger = noopLogger
+): Promise<FotopEventoNomeRaw[]> {
+  const res = await axios.get(`${FOTOP_WEB_BASE_URL}/fotos/webservices/eventos/nome-eventos`, {
+    headers: BROWSER_HEADERS,
+    validateStatus: () => true,
+    params: {
+      pais: 'BR',
+      estado: params.estado ?? '',
+      h: 1,
+      n: params.nome,
+    },
+  });
+
+  const events = Array.isArray(res.data) ? (res.data as FotopEventoNomeRaw[]) : [];
+
+  logger.info(
+    { nome: params.nome, estado: params.estado, status: res.status, count: events.length },
+    'fotop: searchEventosPorNome response'
+  );
+
+  if (res.status >= 400) {
+    logger.warn({ status: res.status, body: preview(res.data) }, 'fotop: searchEventosPorNome returned an error status');
+  }
+
+  return events;
 }
 
 export interface SelfieSearchResult {
