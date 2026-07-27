@@ -1,10 +1,18 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { ensureEventSession, fetchSearchResultsHtml, sendSelfie } from '../fotop/fotopClient';
+import {
+  ensureEventSession,
+  fetchEventosBusca,
+  fetchSearchResultsHtml,
+  searchEventosPorNome,
+  sendSelfie,
+  FOTOP_PHOTOS_BASE_URL,
+} from '../fotop/fotopClient';
 import { parsePhotoGrid, parseNoResultsMessage, parseEventName, type Photo } from '../fotop/photoParser';
 
 const POTOF_SESSION_COOKIE = 'potof_sid';
 const MAX_PAGES = 20;
+const EVENTOS_BUSCA_PAGE_SIZE = 40;
 
 function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): string {
   const existing = request.cookies[POTOF_SESSION_COOKIE];
@@ -20,6 +28,72 @@ function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): s
 }
 
 export async function eventosRoutes(app: FastifyInstance): Promise<void> {
+  app.get<{
+    Querystring: {
+      pag?: string;
+      estado?: string;
+      cat?: string;
+      dataInicio?: string;
+      dataFim?: string;
+      nome_evento?: string;
+    };
+  }>('/api/eventos/busca', async (request, reply) => {
+    const { pag, estado, cat, dataInicio, dataFim, nome_evento: nomeEvento } = request.query;
+    const page = Math.max(1, Number.parseInt(pag ?? '1', 10) || 1);
+    const log = request.log.child({ route: 'eventos-busca', page, estado, cat, dataInicio, dataFim, nomeEvento });
+
+    try {
+      const raw = await fetchEventosBusca({ page, estado, cat, dataInicio, dataFim, nomeEvento }, log);
+      const events = raw.map((e) => ({
+        id: e.id_produtos_eventos,
+        name: e.nome.trim(),
+        city: e.cidade,
+        state: e.estado,
+        location: e.local,
+        date: e.data,
+        dateEnd: e.data_fim && e.data_fim !== '0000-00-00' ? e.data_fim : null,
+        categoryId: e.id_estacoes,
+        photosCount: Number.parseInt(e.qtd_fotos, 10) || 0,
+        hasEventPhoto: e.tem_foto_evento === '1',
+        coverUrl: `${FOTOP_PHOTOS_BASE_URL}/fotos/imagens/produtos_eventos/foto_${e.id_produtos_eventos}_g.jpg`,
+      }));
+
+      return reply.send({ page, events, hasMore: raw.length >= EVENTOS_BUSCA_PAGE_SIZE });
+    } catch (err) {
+      log.error({ err }, 'failed to reach fotop.com.br while listing eventos');
+      return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.br.' });
+    }
+  });
+
+  app.get<{ Querystring: { nome?: string; estado?: string } }>(
+    '/api/eventos/autocomplete',
+    async (request, reply) => {
+      const { nome, estado } = request.query;
+      const log = request.log.child({ route: 'eventos-autocomplete', nome, estado });
+
+      if (!nome || !nome.trim()) {
+        return reply.send({ events: [] });
+      }
+
+      try {
+        const raw = await searchEventosPorNome({ nome: nome.trim(), estado }, log);
+        const events = raw.map((e) => ({
+          id: e.id,
+          name: e.nome.trim(),
+          date: e.data,
+          location: e.local,
+          slug: e.slug,
+          status: e.status,
+        }));
+
+        return reply.send({ events });
+      } catch (err) {
+        log.error({ err }, 'failed to reach fotop.com while searching eventos by name');
+        return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.' });
+      }
+    }
+  );
+
   app.get<{ Params: { id: string } }>('/api/eventos/:id', async (request, reply) => {
     const sessionId = getOrSetPotofSessionId(request, reply);
     const { id: eventId } = request.params;

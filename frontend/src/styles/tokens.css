@@ -1,0 +1,24 @@
+:root {
+  --potof-bg: #fbf7f3;
+  --potof-yellow: #ffc000;
+  --potof-yellow-accent: #ffcc00;
+  --potof-yellow-tint: #ffcc004d;
+  --potof-yellow-tint-strong: #ffcc0066;
+  --potof-primary: #595959;
+  --potof-primary-hover: #404040;
+  --potof-text: #241b16;
+  --potof-muted: #8a7a70;
+  --potof-border: #ece3dc;
+  --potof-viewer-bg: #151009;
+
+  --potof-font-display: 'Archivo Black', 'Arial Black', sans-serif;
+  --potof-font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --potof-radius-sm: 10px;
+  --potof-radius-md: 14px;
+  --potof-radius-lg: 18px;
+
+  /* Width of the event page's content column (photo thumbs grid included) — the photo
+     viewer popup caps itself to this on large screens instead of stretching edge to edge. */
+  --potof-content-max-width: 900px;
+}

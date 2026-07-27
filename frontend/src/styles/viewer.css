@@ -1,0 +1,138 @@
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  background: var(--potof-viewer-bg);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y;
+}
+
+.photo-viewer__panel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* On large screens the popup doesn't need to fill the whole viewport — cap it (and center
+   it) to the same max-width as the event page's thumbs grid, instead of stretching edge to
+   edge. Below this breakpoint the panel stays full-bleed, same as it's always been. */
+@media (min-width: 768px) {
+  .photo-viewer {
+    background: rgba(21, 16, 9, 0.92);
+    padding: 32px;
+  }
+
+  .photo-viewer__panel {
+    width: 100%;
+    max-width: var(--potof-content-max-width);
+    height: min(88vh, 720px);
+    background: var(--potof-viewer-bg);
+    border-radius: var(--potof-radius-lg);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+}
+
+.photo-viewer__image {
+  max-width: min(90vw, 520px);
+  max-height: min(66vh, 520px);
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.photo-viewer__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.photo-viewer__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.photo-viewer__nav--prev {
+  left: 8px;
+}
+
+.photo-viewer__nav--next {
+  right: 8px;
+}
+
+/* Pinned to the bottom (not the top) so the favorite toggle sits in the thumb-reachable
+   zone on mobile — this is the primary way users mark photos while browsing the viewer. */
+.photo-viewer__footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
+
+.photo-viewer__favorite {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-viewer__favorite.is-active {
+  color: var(--potof-yellow-accent);
+}
+
+.photo-viewer__counter {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.photo-viewer__fav-count {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 8px 14px;
+  border-radius: 999px;
+}

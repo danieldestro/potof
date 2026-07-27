@@ -1,4 +1,4 @@
-import type { Photo } from '../types';
+import type { EventNameSuggestion, EventSummary, Photo } from '../types';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -16,6 +16,46 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export function fetchEventInfo(eventId: string): Promise<{ eventId: string; name: string | null }> {
   return request(`/api/eventos/${eventId}`);
+}
+
+export interface FetchEventosParams {
+  page: number;
+  estado?: string;
+  cat?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  nomeEvento?: string;
+}
+
+export function fetchEventos({
+  page,
+  estado,
+  cat,
+  dataInicio,
+  dataFim,
+  nomeEvento,
+}: FetchEventosParams): Promise<{ page: number; events: EventSummary[]; hasMore: boolean }> {
+  const params = new URLSearchParams({ pag: String(page) });
+  if (estado) params.set('estado', estado);
+  if (cat) params.set('cat', cat);
+  if (dataInicio) params.set('dataInicio', dataInicio);
+  if (dataFim) params.set('dataFim', dataFim);
+  if (nomeEvento) params.set('nome_evento', nomeEvento);
+  return request(`/api/eventos/busca?${params.toString()}`);
+}
+
+export interface SearchEventosPorNomeParams {
+  nome: string;
+  estado?: string;
+}
+
+export function searchEventosPorNome({
+  nome,
+  estado,
+}: SearchEventosPorNomeParams): Promise<{ events: EventNameSuggestion[] }> {
+  const params = new URLSearchParams({ nome });
+  if (estado) params.set('estado', estado);
+  return request(`/api/eventos/autocomplete?${params.toString()}`);
 }
 
 export function sendSelfie(eventId: string, file: File): Promise<{ success: boolean; error?: string }> {
