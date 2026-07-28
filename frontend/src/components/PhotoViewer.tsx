@@ -1,6 +1,50 @@
 import { useEffect, useRef, type TouchEvent } from 'react';
 import type { Photo } from '../types';
 
+function ThumbStrip({
+  photos,
+  index,
+  onIndexChange,
+}: {
+  photos: Photo[];
+  index: number;
+  onIndexChange: (index: number) => void;
+}) {
+  const thumbRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  useEffect(() => {
+    thumbRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'start',
+      block: 'nearest',
+    });
+  }, [index]);
+
+  return (
+    <div
+      className="photo-viewer__thumbstrip"
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+    >
+      {photos.map((thumbPhoto, i) => (
+        <button
+          key={thumbPhoto.id}
+          type="button"
+          ref={(el) => {
+            thumbRefs.current[i] = el;
+          }}
+          className={`photo-viewer__thumb${i === index ? ' is-active' : ''}`}
+          onClick={() => onIndexChange(i)}
+          aria-label={`Ver foto ${i + 1}`}
+          aria-current={i === index}
+        >
+          <img src={thumbPhoto.thumbs.p} alt="" loading="lazy" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 interface PhotoViewerProps {
   photos: Photo[];
   index: number;
@@ -91,21 +135,25 @@ export function PhotoViewer({
         </button>
 
         <div className="photo-viewer__footer">
-          <button
-            type="button"
-            className={`photo-viewer__favorite${isFavorite(photo.id) ? ' is-active' : ''}`}
-            onClick={() => onToggleFavorite(photo.id)}
-            aria-label="Favoritar"
-          >
-            {isFavorite(photo.id) ? '♥' : '♡'}
-          </button>
+          <ThumbStrip photos={photos} index={index} onIndexChange={onIndexChange} />
 
-          <div className="photo-viewer__counter">
-            {index + 1} de {photos.length}
-          </div>
+          <div className="photo-viewer__footer-controls">
+            <button
+              type="button"
+              className={`photo-viewer__favorite${isFavorite(photo.id) ? ' is-active' : ''}`}
+              onClick={() => onToggleFavorite(photo.id)}
+              aria-label="Favoritar"
+            >
+              {isFavorite(photo.id) ? '♥' : '♡'}
+            </button>
 
-          <div className="photo-viewer__fav-count" aria-label={`${favoritesCount} fotos favoritas`}>
-            <span aria-hidden="true">♥</span> {favoritesCount}
+            <div className="photo-viewer__counter">
+              {index + 1} de {photos.length}
+            </div>
+
+            <div className="photo-viewer__fav-count" aria-label={`${favoritesCount} fotos favoritas`}>
+              <span aria-hidden="true">♥</span> {favoritesCount}
+            </div>
           </div>
         </div>
       </div>
