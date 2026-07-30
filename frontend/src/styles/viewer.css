@@ -38,11 +38,52 @@
   }
 }
 
+/* The frame shrink-wraps to the image's actual rendered box (portrait or landscape),
+   so the favorite button — absolutely positioned inside it — always lands on the
+   photo's own corner instead of the panel's. */
+.photo-viewer__frame {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .photo-viewer__image {
-  max-width: min(90vw, 520px);
-  max-height: min(66vh, 520px);
+  display: block;
+  max-width: min(94vw, 760px);
+  max-height: min(74vh, 760px);
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .photo-viewer__image {
+    max-width: min(78vw, 720px);
+    max-height: min(64vh, 540px);
+  }
+}
+
+.photo-viewer__top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 60px 24px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+
+.photo-viewer__top .photo-viewer__fav-count {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .photo-viewer__close {
@@ -91,20 +132,8 @@
   right: 0;
   bottom: 0;
   z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
   padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
-}
-
-.photo-viewer__footer-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 20px;
 }
 
 .photo-viewer__thumbstrip {
@@ -148,13 +177,23 @@
   opacity: 1;
 }
 
+/* Floats over the photo's own bottom-right corner (see .photo-viewer__frame), so it
+   needs stronger contrast than a plain translucent circle since it now sits on top
+   of arbitrary photo content instead of a guaranteed-dark gradient. */
 .photo-viewer__favorite {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
   flex: none;
   width: 44px;
   height: 44px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(21, 16, 9, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   color: #fff;
   font-size: 1.4rem;
   cursor: pointer;

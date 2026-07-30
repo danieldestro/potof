@@ -110,6 +110,16 @@ export function PhotoViewer({
   return (
     <div className="photo-viewer" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className="photo-viewer__panel">
+        <div className="photo-viewer__top">
+          <div className="photo-viewer__fav-count" aria-label={`${favoritesCount} fotos favoritas`}>
+            <span aria-hidden="true">♥</span> {favoritesCount}
+          </div>
+
+          <div className="photo-viewer__counter">
+            {index + 1} de {photos.length}
+          </div>
+        </div>
+
         <button type="button" className="photo-viewer__close" onClick={onClose} aria-label="Fechar">
           ×
         </button>
@@ -123,7 +133,18 @@ export function PhotoViewer({
           ‹
         </button>
 
-        <img className="photo-viewer__image" src={photo.thumbs.g} alt="" />
+        <div className="photo-viewer__frame">
+          <img className="photo-viewer__image" src={photo.thumbs.g} alt="" />
+
+          <button
+            type="button"
+            className={`photo-viewer__favorite${isFavorite(photo.id) ? ' is-active' : ''}`}
+            onClick={() => onToggleFavorite(photo.id)}
+            aria-label="Favoritar"
+          >
+            {isFavorite(photo.id) ? '♥' : '♡'}
+          </button>
+        </div>
 
         <button
           type="button"
@@ -136,25 +157,6 @@ export function PhotoViewer({
 
         <div className="photo-viewer__footer">
           <ThumbStrip photos={photos} index={index} onIndexChange={onIndexChange} />
-
-          <div className="photo-viewer__footer-controls">
-            <button
-              type="button"
-              className={`photo-viewer__favorite${isFavorite(photo.id) ? ' is-active' : ''}`}
-              onClick={() => onToggleFavorite(photo.id)}
-              aria-label="Favoritar"
-            >
-              {isFavorite(photo.id) ? '♥' : '♡'}
-            </button>
-
-            <div className="photo-viewer__counter">
-              {index + 1} de {photos.length}
-            </div>
-
-            <div className="photo-viewer__fav-count" aria-label={`${favoritesCount} fotos favoritas`}>
-              <span aria-hidden="true">♥</span> {favoritesCount}
-            </div>
-          </div>
         </div>
       </div>
     </div>
