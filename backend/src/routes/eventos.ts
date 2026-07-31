@@ -29,6 +29,7 @@ function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): s
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
   });
   return sessionId;
 }
