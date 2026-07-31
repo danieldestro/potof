@@ -14,7 +14,6 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(function Header({ eve
   const [menuOpen, setMenuOpen] = useState(false);
   const [totalFavorites, setTotalFavorites] = useState(0);
 
-  const exploreMatch = useMatch('/eventos');
   const eventoMatch = useMatch('/evento/:eventId');
   const favoritasMatch = useMatch('/evento/:eventId/favoritas');
   const checkoutMatch = useMatch('/evento/:eventId/checkout');
@@ -33,11 +32,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(function Header({ eve
     eventoMatch?.params.eventId ?? favoritasMatch?.params.eventId ?? checkoutMatch?.params.eventId ?? null;
 
   const showBack = !isHome;
-  const headerTitle = exploreMatch
-    ? 'Todos os eventos'
-    : eventoMatch || favoritasMatch
-      ? (eventTitle ?? '')
-      : '';
+  const headerTitle = eventoMatch || favoritasMatch ? (eventTitle ?? '') : '';
 
   function goBack() {
     if (checkoutMatch) navigate(`/evento/${checkoutMatch.params.eventId}/favoritas`);
