@@ -188,19 +188,19 @@ export function FavoritesPage() {
                 </button>
                 <button
                   type="button"
-                  className="photo-grid__fav-btn"
+                  className="photo-grid__fav-btn photo-grid__fav-btn--remove"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemove(photo.id);
                   }}
                   aria-label="Remover dos favoritos"
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path
-                      d="M12 21s-7.5-4.6-10-9.2C0.3 8 2 4 6 4c2.3 0 3.8 1.3 6 3.6C14.2 5.3 15.7 4 18 4c4 0 5.7 4 4 7.8-2.5 4.6-10 9.2-10 9.2Z"
-                      fill="var(--potof-primary)"
-                      stroke="var(--potof-primary)"
-                      strokeWidth="2"
+                      d="M5 5l14 14M19 5L5 19"
+                      stroke="var(--potof-danger)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
                     />
                   </svg>
                 </button>

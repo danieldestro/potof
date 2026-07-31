@@ -25,12 +25,13 @@ export function PhotoGrid({ photos, onSelect, isFavorite, onToggleFavorite }: Ph
               }}
               aria-label="Favoritar"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24">
+              <svg width="16" height="16" viewBox="0 0 24 24">
                 <path
-                  d="M12 21s-7.5-4.6-10-9.2C0.3 8 2 4 6 4c2.3 0 3.8 1.3 6 3.6C14.2 5.3 15.7 4 18 4c4 0 5.7 4 4 7.8-2.5 4.6-10 9.2-10 9.2Z"
+                  d="M12 21.3s-7.6-4.35-10.15-9.02C-.15 8.4 1.6 4.1 5.85 4.1c2.4 0 4.05 1.4 6.15 3.75 2.1-2.35 3.75-3.75 6.15-3.75 4.25 0 6 4.3 3.95 8.18C19.6 16.95 12 21.3 12 21.3Z"
                   fill={isFavorite?.(photo.id) ? 'var(--potof-yellow-accent)' : 'rgba(0,0,0,0)'}
                   stroke="#fff"
-                  strokeWidth="2"
+                  strokeWidth="2.6"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>

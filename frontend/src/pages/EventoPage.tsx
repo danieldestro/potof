@@ -201,7 +201,7 @@ export function EventoPage() {
         <PurchaseFooter
           count={favCount}
           total={favTotal}
-          ctaLabel="Comprar"
+          ctaLabel="Ver Favoritas"
           onCta={() =>
             // Hands the event data and search results we already have over to the
             // Favoritas page so it doesn't need to re-fetch them — see FavoritesPage.tsx.
