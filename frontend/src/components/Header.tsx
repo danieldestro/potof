@@ -17,6 +17,7 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(function Header({ eve
   const exploreMatch = useMatch('/eventos');
   const eventoMatch = useMatch('/evento/:eventId');
   const favoritasMatch = useMatch('/evento/:eventId/favoritas');
+  const checkoutMatch = useMatch('/evento/:eventId/checkout');
   const isHome = location.pathname === '/';
 
   useEffect(() => {
@@ -28,7 +29,8 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(function Header({ eve
     return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, refresh);
   }, [location.pathname]);
 
-  const currentEventId = eventoMatch?.params.eventId ?? favoritasMatch?.params.eventId ?? null;
+  const currentEventId =
+    eventoMatch?.params.eventId ?? favoritasMatch?.params.eventId ?? checkoutMatch?.params.eventId ?? null;
 
   const showBack = !isHome;
   const headerTitle = exploreMatch
@@ -38,7 +40,8 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(function Header({ eve
       : '';
 
   function goBack() {
-    if (favoritasMatch) navigate(`/evento/${favoritasMatch.params.eventId}`);
+    if (checkoutMatch) navigate(`/evento/${checkoutMatch.params.eventId}/favoritas`);
+    else if (favoritasMatch) navigate(`/evento/${favoritasMatch.params.eventId}`);
     else navigate('/');
   }
 

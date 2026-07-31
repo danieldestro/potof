@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage';
 import { ExplorePage } from './pages/ExplorePage';
 import { EventoPage } from './pages/EventoPage';
 import { FavoritesPage } from './pages/FavoritesPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
           <Route path="/eventos" element={<ExplorePage />} />
           <Route path="/evento/:eventId" element={<EventoPage />} />
           <Route path="/evento/:eventId/favoritas" element={<FavoritesPage />} />
+          <Route path="/evento/:eventId/checkout" element={<CheckoutPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

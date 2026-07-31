@@ -1,8 +1,14 @@
 .favorites-page {
   max-width: 900px;
   margin: 0 auto;
-  padding: clamp(18px, 4vw, 28px) clamp(16px, 4vw, 32px) 140px;
+  padding: clamp(18px, 4vw, 28px) clamp(16px, 4vw, 32px) 100px;
   animation: potof-fade 0.25s ease;
+}
+
+/* Leaves room for the fixed purchase footer so page content scrolls above it
+   instead of being covered by it — see evento.css for the shared footer styles. */
+.favorites-page--with-footer {
+  padding-bottom: calc(var(--potof-footer-height) + env(safe-area-inset-bottom, 0px) + 24px);
 }
 
 .favorites-page__title {
@@ -25,36 +31,11 @@
   margin-bottom: 24px;
 }
 
-.favorites-summary {
-  padding: 20px;
-}
-
-.favorites-summary__row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13.5px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.favorites-summary__upsell {
+.favorites-page__upsell {
   font-size: 12.5px;
+  font-weight: 700;
   color: var(--potof-muted);
-  margin: 0 0 14px;
-}
-
-.favorites-summary__total {
-  display: flex;
-  justify-content: space-between;
-  font-size: 16px;
-  font-weight: 800;
-  border-top: 1px solid var(--potof-border);
-  padding-top: 12px;
-  margin-bottom: 16px;
-}
-
-.favorites-summary__cta {
-  width: 100%;
+  margin: -8px 0 16px;
 }
 
 .potof-toast {

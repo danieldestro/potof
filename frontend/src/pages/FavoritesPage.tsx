@@ -6,7 +6,7 @@ import { getMockEventMeta } from '../data/exploreCatalog';
 import { eventTypeLabel } from '../data/eventTypes';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
 import { PhotoViewer } from '../components/PhotoViewer';
-import { Toast } from '../components/Toast';
+import { PurchaseFooter } from '../components/PurchaseFooter';
 import type { HeaderContext } from '../layouts/headerContext';
 import type { EventHeaderInfo, Photo } from '../types';
 
@@ -33,7 +33,6 @@ export function FavoritesPage() {
   const headerInfo = passedEvent ?? fetchedInfo;
   const [sessionExpired, setSessionExpired] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  const [toast, setToast] = useState('');
 
   useEffect(() => {
     // The event name is shown in a card in the page body instead of the app
@@ -92,13 +91,14 @@ export function FavoritesPage() {
     toggleFavorite(photoId);
   }
 
-  function finishSelection() {
-    setToast('Seleção salva!');
-    setTimeout(() => setToast(''), 2000);
+  function goToCheckout() {
+    navigate(`/evento/${eventId}/checkout`, {
+      state: { photos: favoritePhotos, total: subtotal, eventName: headerInfo?.name ?? null },
+    });
   }
 
   return (
-    <div className="favorites-page">
+    <div className={`favorites-page${favoritePhotos.length > 0 ? ' favorites-page--with-footer' : ''}`}>
       {headerInfo?.name && (
         <div className="evento-hero potof-card">
           {categoryLabel && <span className="potof-badge">{categoryLabel}</span>}
@@ -143,6 +143,13 @@ export function FavoritesPage() {
 
       {favoritePhotos.length > 0 && (
         <>
+          {showUpsell && (
+            <p className="favorites-page__upsell">
+              Leve todas as {totalPhotosCount} fotos por apenas R$ {formatBRL(packageTotal)} (R${' '}
+              {packagePrice},00/foto)
+            </p>
+          )}
+
           <div className="photo-grid favorites-page__grid">
             {favoritePhotos.map((photo, index) => (
               <div key={photo.id} className="photo-grid__item">
@@ -175,33 +182,14 @@ export function FavoritesPage() {
             ))}
           </div>
 
-          <div className="favorites-summary potof-card">
-            <div className="favorites-summary__row">
-              <span>{favoritePhotos.length} fotos selecionadas</span>
-              <span>R$ {formatBRL(subtotal)}</span>
-            </div>
-            {showUpsell && (
-              <p className="favorites-summary__upsell">
-                Leve todas as {totalPhotosCount} fotos por apenas R$ {formatBRL(packageTotal)} (R${' '}
-                {packagePrice},00/foto)
-              </p>
-            )}
-            <div className="favorites-summary__total">
-              <span>Total</span>
-              <span>R$ {formatBRL(subtotal)}</span>
-            </div>
-            <button
-              type="button"
-              className="potof-btn potof-btn--primary favorites-summary__cta"
-              onClick={finishSelection}
-            >
-              Concluir seleção
-            </button>
-          </div>
+          <PurchaseFooter
+            count={favoritePhotos.length}
+            total={subtotal}
+            ctaLabel="Comprar agora!"
+            onCta={goToCheckout}
+          />
         </>
       )}
-
-      {toast && <Toast message={toast} />}
 
       {viewerIndex !== null && (
         <PhotoViewer

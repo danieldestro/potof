@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useOutletContext, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { fetchEventInfo, fetchEventPhotos, sendSelfie } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
 import { getMockEventMeta } from '../data/exploreCatalog';
 import { eventTypeLabel } from '../data/eventTypes';
 import { setLastEventId } from '../lib/lastEvent';
+import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
 import { SelfieUpload } from '../components/SelfieUpload';
 import { PhotoGrid } from '../components/PhotoGrid';
@@ -19,6 +20,7 @@ type Status = 'idle' | 'loading' | 'results' | 'empty';
 export function EventoPage() {
   const { eventId = '' } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { setEventTitle } = useOutletContext<HeaderContext>();
   // A click from Home/Eventos hands the event data over via router state so this
   // page doesn't need to re-fetch/re-scrape it. Direct URL visits (no state) fall
@@ -26,16 +28,22 @@ export function EventoPage() {
   const passedEvent = (location.state as { event?: EventHeaderInfo } | null)?.event ?? null;
   const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(null);
   const headerInfo = passedEvent && passedEvent.id === eventId ? passedEvent : fetchedInfo;
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>(() => getCachedSearch(eventId)?.photos ?? []);
   const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(() => getCachedSearch(eventId)?.hasSearched ?? false);
+  const [error, setError] = useState<string | null>(() => getCachedSearch(eventId)?.error ?? null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const { isFavorite, toggleFavorite, favorites } = useFavorites(eventId);
 
   useEffect(() => {
     setLastEventId(eventId);
   }, [eventId]);
+
+  // Keeps the search results alive across Evento ↔ Favoritas navigation (see
+  // photoSearchCache.ts) — restored above via the states' lazy initializers.
+  useEffect(() => {
+    setCachedSearch(eventId, { photos, hasSearched, error });
+  }, [eventId, photos, hasSearched, error]);
 
   useEffect(() => {
     if (passedEvent && passedEvent.id === eventId) return;
@@ -156,11 +164,14 @@ export function EventoPage() {
 
       {status === 'results' && (
         <PurchaseFooter
-          eventId={eventId}
           count={favCount}
           total={favTotal}
-          photos={photos}
-          eventInfo={headerInfo}
+          ctaLabel="Comprar"
+          onCta={() =>
+            // Hands the event data and search results we already have over to the
+            // Favoritas page so it doesn't need to re-fetch them — see FavoritesPage.tsx.
+            navigate(`/evento/${eventId}/favoritas`, { state: { photos, event: headerInfo } })
+          }
         />
       )}
 
