@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import { useLocation, useMatch, useNavigate } from 'react-router-dom';
 import { FAVORITES_CHANGED_EVENT, getTotalFavoritesCount } from '../hooks/useFavorites';
 import { getLastEventId } from '../lib/lastEvent';
@@ -8,7 +8,7 @@ interface HeaderProps {
   eventTitle: string | null;
 }
 
-export function Header({ eventTitle }: HeaderProps) {
+export const Header = forwardRef<HTMLElement, HeaderProps>(function Header({ eventTitle }, ref) {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,7 +48,7 @@ export function Header({ eventTitle }: HeaderProps) {
   }
 
   return (
-    <header className="potof-header">
+    <header ref={ref} className="potof-header">
       <div className="potof-header__row">
         <div className="potof-header__logo" onClick={() => navigate('/')}>
           POTOF
@@ -132,4 +132,4 @@ export function Header({ eventTitle }: HeaderProps) {
       {menuOpen && <NavDrawer onClose={() => setMenuOpen(false)} />}
     </header>
   );
-}
+});

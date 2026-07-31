@@ -25,4 +25,8 @@
   /* Visual height of the fixed purchase footer on the event page (excludes the safe-area
      inset, which is added on top wherever this is used for clearance/offsets). */
   --potof-footer-height: 72px;
+
+  /* Fallback for the fixed app header's height, used only until AppLayout measures the
+     real rendered height (which varies with viewport width) and overwrites this. */
+  --potof-header-height: 66px;
 }

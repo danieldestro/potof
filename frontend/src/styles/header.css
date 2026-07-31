@@ -6,11 +6,17 @@
 }
 
 .potof-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 200;
   box-shadow: 0 2px 10px rgba(196, 63, 29, 0.25);
   background-color: var(--potof-yellow);
+}
+
+.potof-app__content {
+  padding-top: var(--potof-header-height);
 }
 
 .potof-header__row {
