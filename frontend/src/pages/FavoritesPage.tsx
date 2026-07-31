@@ -21,9 +21,16 @@ export function FavoritesPage() {
   const { setEventTitle } = useOutletContext<HeaderContext>();
   const { favorites, isFavorite, toggleFavorite } = useFavorites(eventId);
 
-  const statePhotos = (location.state as { photos?: Photo[] } | null)?.photos ?? null;
+  const routerState = location.state as { photos?: Photo[]; event?: EventHeaderInfo } | null;
+  const statePhotos = routerState?.photos ?? null;
   const [allPhotos, setAllPhotos] = useState<Photo[] | null>(statePhotos);
-  const [headerInfo, setHeaderInfo] = useState<EventHeaderInfo | null>(null);
+  // The event page hands its already-fetched event data over via router state (same
+  // as `photos` above) so this page doesn't need to re-hit /api/eventos/{id}. Direct
+  // URL visits and entry points that don't have it (e.g. the header's favorites icon)
+  // fall back to fetching it here.
+  const passedEvent = routerState?.event && routerState.event.id === eventId ? routerState.event : null;
+  const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(null);
+  const headerInfo = passedEvent ?? fetchedInfo;
   const [sessionExpired, setSessionExpired] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [toast, setToast] = useState('');
@@ -35,16 +42,17 @@ export function FavoritesPage() {
   }, [eventId, setEventTitle]);
 
   useEffect(() => {
+    if (passedEvent) return;
     let cancelled = false;
     fetchEventInfo(eventId)
       .then((info) => {
-        if (!cancelled) setHeaderInfo({ id: eventId, ...info });
+        if (!cancelled) setFetchedInfo({ id: eventId, ...info });
       })
       .catch((err) => console.error('[FavoritesPage] falha ao buscar dados do evento', err));
     return () => {
       cancelled = true;
     };
-  }, [eventId]);
+  }, [eventId, passedEvent]);
 
   useEffect(() => {
     if (allPhotos !== null) return;

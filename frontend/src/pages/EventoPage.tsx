@@ -155,7 +155,13 @@ export function EventoPage() {
       )}
 
       {status === 'results' && (
-        <PurchaseFooter eventId={eventId} count={favCount} total={favTotal} photos={photos} />
+        <PurchaseFooter
+          eventId={eventId}
+          count={favCount}
+          total={favTotal}
+          photos={photos}
+          eventInfo={headerInfo}
+        />
       )}
 
       {viewerIndex !== null && (
