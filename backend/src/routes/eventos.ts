@@ -8,7 +8,13 @@ import {
   sendSelfie,
   FOTOP_PHOTOS_BASE_URL,
 } from '../fotop/fotopClient';
-import { parsePhotoGrid, parseNoResultsMessage, parseEventName, type Photo } from '../fotop/photoParser';
+import {
+  parsePhotoGrid,
+  parseNoResultsMessage,
+  parseEventName,
+  parseEventLocalData,
+  type Photo,
+} from '../fotop/photoParser';
 
 const POTOF_SESSION_COOKIE = 'potof_sid';
 const MAX_PAGES = 20;
@@ -105,7 +111,17 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
       if (!name) {
         log.warn('parseEventName: h1.nome-evento-interna a not found on the event page');
       }
-      return reply.send({ eventId, name });
+      const { city, state, date, photosCount } = parseEventLocalData(html);
+      return reply.send({
+        eventId,
+        name,
+        city,
+        state,
+        location: city && state ? `${city}, ${state}` : city ?? state,
+        date,
+        photosCount,
+        categoryId: null,
+      });
     } catch (err) {
       log.error({ err }, 'failed to reach fotop.com.br while fetching event info');
       return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.br.' });

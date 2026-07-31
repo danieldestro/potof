@@ -1,4 +1,4 @@
-import type { EventNameSuggestion, EventSummary, Photo } from '../types';
+import type { EventHeaderInfo, EventNameSuggestion, EventSummary, Photo } from '../types';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -14,7 +14,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function fetchEventInfo(eventId: string): Promise<{ eventId: string; name: string | null }> {
+export function fetchEventInfo(eventId: string): Promise<Omit<EventHeaderInfo, 'id'> & { eventId: string }> {
   return request(`/api/eventos/${eventId}`);
 }
 

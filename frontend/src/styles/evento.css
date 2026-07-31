@@ -8,6 +8,9 @@
 .evento-hero {
   padding: clamp(18px, 4vw, 24px);
   margin-bottom: clamp(16px, 4vw, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .evento-hero__title {
@@ -19,7 +22,17 @@
 }
 
 .evento-hero__meta {
-  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--potof-muted);
+}
+
+.evento-hero__results {
+  margin: 4px 0 0;
   font-size: 13px;
   font-weight: 700;
   color: var(--potof-muted);

@@ -1,23 +1,31 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext, useParams } from 'react-router-dom';
+import { useLocation, useOutletContext, useParams } from 'react-router-dom';
 import { fetchEventInfo, fetchEventPhotos, sendSelfie } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
 import { getMockEventMeta } from '../data/exploreCatalog';
+import { eventTypeLabel } from '../data/eventTypes';
 import { setLastEventId } from '../lib/lastEvent';
+import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
 import { SelfieUpload } from '../components/SelfieUpload';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { UpsellBanner } from '../components/UpsellBanner';
 import { StickyFavBar } from '../components/StickyFavBar';
 import type { HeaderContext } from '../layouts/headerContext';
-import type { Photo } from '../types';
+import type { EventHeaderInfo, Photo } from '../types';
 
 type Status = 'idle' | 'loading' | 'results' | 'empty';
 
 export function EventoPage() {
   const { eventId = '' } = useParams();
+  const location = useLocation();
   const { setEventTitle } = useOutletContext<HeaderContext>();
-  const [eventName, setEventName] = useState<string | null>(null);
+  // A click from Home/Eventos hands the event data over via router state so this
+  // page doesn't need to re-fetch/re-scrape it. Direct URL visits (no state) fall
+  // back to fetchEventInfo, which scrapes it from the fotop.com.br event page.
+  const passedEvent = (location.state as { event?: EventHeaderInfo } | null)?.event ?? null;
+  const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(null);
+  const headerInfo = passedEvent && passedEvent.id === eventId ? passedEvent : fetchedInfo;
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -30,20 +38,21 @@ export function EventoPage() {
   }, [eventId]);
 
   useEffect(() => {
+    if (passedEvent && passedEvent.id === eventId) return;
     let cancelled = false;
     fetchEventInfo(eventId)
       .then((info) => {
-        if (!cancelled) setEventName(info.name);
+        if (!cancelled) setFetchedInfo({ id: eventId, ...info });
       })
-      .catch((err) => console.error('[EventoPage] falha ao buscar nome do evento', err));
+      .catch((err) => console.error('[EventoPage] falha ao buscar dados do evento', err));
     return () => {
       cancelled = true;
     };
-  }, [eventId]);
+  }, [eventId, passedEvent]);
 
   useEffect(() => {
-    document.title = eventName ? `${eventName} · potof` : 'potof';
-  }, [eventName]);
+    document.title = headerInfo?.name ? `${headerInfo.name} · potof` : 'potof';
+  }, [headerInfo?.name]);
 
   useEffect(() => {
     // The event name is shown in a card in the page body instead of the app
@@ -90,13 +99,25 @@ export function EventoPage() {
   const favCount = photos.filter((p) => favorites.has(p.id)).length;
   const { pricePerPhoto, packagePrice } = getMockEventMeta(eventId);
 
+  const locationLabel = headerInfo ? formatLocationLabel(headerInfo.city, headerInfo.state) : null;
+  const dateLabel = headerInfo ? formatDateLabel(headerInfo.date) : null;
+  const categoryLabel = headerInfo?.categoryId ? eventTypeLabel(headerInfo.categoryId) : null;
+
   return (
     <div className="evento-page">
-      {eventName && (
+      {headerInfo?.name && (
         <div className="evento-hero potof-card">
-          <h1 className="evento-hero__title">{eventName}</h1>
+          {categoryLabel && <span className="potof-badge">{categoryLabel}</span>}
+          <h1 className="evento-hero__title">{headerInfo.name}</h1>
+          {(locationLabel || dateLabel || headerInfo.photosCount != null) && (
+            <div className="evento-hero__meta">
+              {locationLabel && <span>📍 {locationLabel}</span>}
+              {dateLabel && <span>🗓 {dateLabel}</span>}
+              {headerInfo.photosCount != null && <span>📷 {formatPhotosCount(headerInfo.photosCount)} fotos</span>}
+            </div>
+          )}
           {status === 'results' && (
-            <p className="evento-hero__meta">{photos.length} fotos encontradas</p>
+            <p className="evento-hero__results">{photos.length} fotos encontradas</p>
           )}
         </div>
       )}

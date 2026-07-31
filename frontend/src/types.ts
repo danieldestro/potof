@@ -22,6 +22,20 @@ export interface EventSummary {
   coverUrl: string;
 }
 
+// Data shown in the event page's header card. A full EventSummary (from the
+// Home/Eventos listing) satisfies this; the autocomplete suggestion and the
+// direct-URL scrape fallback only ever fill part of it.
+export interface EventHeaderInfo {
+  id: string;
+  name: string | null;
+  city: string | null;
+  state: string | null;
+  location: string | null;
+  date: string | null;
+  photosCount: number | null;
+  categoryId: string | null;
+}
+
 export interface EventNameSuggestion {
   id: string;
   name: string;

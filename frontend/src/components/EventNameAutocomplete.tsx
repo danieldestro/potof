@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchEventosPorNome } from '../api/client';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import type { EventNameSuggestion } from '../types';
+import type { EventHeaderInfo, EventNameSuggestion } from '../types';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -46,11 +46,21 @@ export function EventNameAutocomplete({ estado }: EventNameAutocompleteProps) {
     };
   }, [debouncedQuery, estado]);
 
-  function handleSelect(eventId: string) {
+  function handleSelect(event: EventNameSuggestion) {
     setOpen(false);
     setQuery('');
     setSuggestions([]);
-    navigate(`/evento/${eventId}`);
+    const headerInfo: EventHeaderInfo = {
+      id: event.id,
+      name: event.name,
+      city: null,
+      state: null,
+      location: event.location,
+      date: event.date,
+      photosCount: null,
+      categoryId: null,
+    };
+    navigate(`/evento/${event.id}`, { state: { event: headerInfo } });
   }
 
   const showDropdown = open && query.trim().length >= MIN_QUERY_LENGTH;
@@ -93,7 +103,7 @@ export function EventNameAutocomplete({ estado }: EventNameAutocompleteProps) {
                 type="button"
                 className="home-autocomplete__item"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleSelect(event.id)}
+                onClick={() => handleSelect(event)}
               >
                 <span className="home-autocomplete__item-name">{event.name}</span>
                 <span className="home-autocomplete__item-meta">
