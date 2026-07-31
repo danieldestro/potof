@@ -43,13 +43,14 @@ export function EventoPage() {
 
   useEffect(() => {
     document.title = eventName ? `${eventName} · potof` : 'potof';
-    // No cleanup here: Header only reads this title while the route matches
-    // /evento/:id or /evento/:id/favoritas, so a stale value is harmless and
-    // clearing it in an unmount cleanup fires a cross-component setState
-    // warning during route transitions (this page unmounting while the next
-    // page mounts in the same commit).
-    setEventTitle(eventName);
-  }, [eventName, setEventTitle]);
+  }, [eventName]);
+
+  useEffect(() => {
+    // The event name is shown in a card in the page body instead of the app
+    // header here — clear it so a name left over from a previous event page
+    // doesn't flash in the header on mount.
+    setEventTitle(null);
+  }, [eventId, setEventTitle]);
 
   async function handleSearch(file: File) {
     setLoading(true);
@@ -91,6 +92,15 @@ export function EventoPage() {
 
   return (
     <div className="evento-page">
+      {eventName && (
+        <div className="evento-hero potof-card">
+          <h1 className="evento-hero__title">{eventName}</h1>
+          {status === 'results' && (
+            <p className="evento-hero__meta">{photos.length} fotos encontradas</p>
+          )}
+        </div>
+      )}
+
       {(status === 'idle' || status === 'empty') && (
         <div>
           <SelfieUpload onSearch={handleSearch} loading={loading} />
@@ -113,7 +123,6 @@ export function EventoPage() {
             packagePrice={packagePrice}
             onAddAllFavorites={addAllFavorites}
           />
-          <p className="evento-page__results-count">{photos.length} fotos encontradas</p>
           <PhotoGrid
             photos={photos}
             onSelect={setViewerIndex}

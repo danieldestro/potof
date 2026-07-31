@@ -5,6 +5,26 @@
   animation: potof-fade 0.25s ease;
 }
 
+.evento-hero {
+  padding: clamp(18px, 4vw, 24px);
+  margin-bottom: clamp(16px, 4vw, 22px);
+}
+
+.evento-hero__title {
+  margin: 0;
+  font-family: var(--potof-font-display);
+  font-size: clamp(22px, 5vw, 28px);
+  color: var(--potof-text);
+  line-height: 1.2;
+}
+
+.evento-hero__meta {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--potof-muted);
+}
+
 .selfie-upload {
   padding: clamp(20px, 4vw, 30px);
   text-align: center;
@@ -131,13 +151,6 @@
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-}
-
-.evento-page__results-count {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--potof-muted);
-  margin: 0 0 12px;
 }
 
 .photo-grid {

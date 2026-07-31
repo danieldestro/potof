@@ -17,7 +17,7 @@ export function HomePage() {
   // app default (seeded into localStorage the first time via getUserPreferences itself).
   const [categoryFilter, setCategoryFilter] = useState(() => getUserPreferences().categoria);
   const [stateFilter, setStateFilter] = useState(() => getUserPreferences().estado);
-  const [viewMode, setViewMode] = useState<EventsViewMode>('list');
+  const [viewMode, setViewMode] = useState<EventsViewMode>('compact');
   const navigate = useNavigate();
 
   const {

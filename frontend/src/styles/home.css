@@ -136,19 +136,73 @@
 }
 
 .category-pills-wrap {
-  padding: clamp(16px, 3.4vw, 22px);
-  overflow-x: auto;
+  overflow: hidden;
+}
+
+.category-pills-carousel {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.category-pills-carousel--small {
+  margin-bottom: 16px;
 }
 
 .category-pills {
   display: flex;
+  align-items: center;
   gap: 14px;
+  flex: 1;
+  min-width: 0;
+  padding: clamp(16px, 3.4vw, 22px) 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.category-pills--small {
-  overflow-x: auto;
-  padding-bottom: 6px;
-  margin-bottom: 16px;
+.category-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pills-nav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  border: none;
+  background: var(--potof-yellow-tint);
+  color: var(--potof-primary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.category-pills-nav--prev {
+  border-radius: var(--potof-radius-lg) 0 0 var(--potof-radius-lg);
+}
+
+.category-pills-nav--next {
+  border-radius: 0 var(--potof-radius-lg) var(--potof-radius-lg) 0;
+}
+
+.category-pills-carousel--small .category-pills-nav--prev {
+  border-radius: var(--potof-radius-sm) 0 0 var(--potof-radius-sm);
+}
+
+.category-pills-carousel--small .category-pills-nav--next {
+  border-radius: 0 var(--potof-radius-sm) var(--potof-radius-sm) 0;
+}
+
+.category-pills-nav:disabled {
+  background: var(--potof-border);
+  color: var(--potof-muted);
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: none;
 }
 
 .category-pill {
@@ -309,6 +363,12 @@
 @media (max-width: 640px) {
   .home-view-toggle {
     display: flex;
+  }
+
+  /* Push the toggle to the far right of the row instead of hugging the title text. */
+  .home-section-header__title {
+    width: 100%;
+    justify-content: space-between;
   }
 
   /* Mobile-only: pin "list" to a single column so the toggle has a real effect —
