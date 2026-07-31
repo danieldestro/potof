@@ -3,10 +3,12 @@ import { useLocation, useNavigate, useOutletContext, useParams } from 'react-rou
 import { fetchEventInfo, fetchEventPhotos } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
 import { getMockEventMeta } from '../data/exploreCatalog';
+import { eventTypeLabel } from '../data/eventTypes';
+import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { Toast } from '../components/Toast';
 import type { HeaderContext } from '../layouts/headerContext';
-import type { Photo } from '../types';
+import type { EventHeaderInfo, Photo } from '../types';
 
 function formatBRL(value: number): string {
   return value.toFixed(2).replace('.', ',');
@@ -21,23 +23,28 @@ export function FavoritesPage() {
 
   const statePhotos = (location.state as { photos?: Photo[] } | null)?.photos ?? null;
   const [allPhotos, setAllPhotos] = useState<Photo[] | null>(statePhotos);
+  const [headerInfo, setHeaderInfo] = useState<EventHeaderInfo | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [toast, setToast] = useState('');
 
   useEffect(() => {
+    // The event name is shown in a card in the page body instead of the app
+    // header here — see EventoPage.tsx for the same treatment.
+    setEventTitle(null);
+  }, [eventId, setEventTitle]);
+
+  useEffect(() => {
     let cancelled = false;
     fetchEventInfo(eventId)
       .then((info) => {
-        if (!cancelled) setEventTitle(info.name);
+        if (!cancelled) setHeaderInfo({ id: eventId, ...info });
       })
-      .catch((err) => console.error('[FavoritesPage] falha ao buscar nome do evento', err));
-    // No setEventTitle(null) on cleanup — see EventoPage.tsx for why that's
-    // unnecessary and triggers a cross-component setState warning.
+      .catch((err) => console.error('[FavoritesPage] falha ao buscar dados do evento', err));
     return () => {
       cancelled = true;
     };
-  }, [eventId, setEventTitle]);
+  }, [eventId]);
 
   useEffect(() => {
     if (allPhotos !== null) return;
@@ -69,6 +76,10 @@ export function FavoritesPage() {
   const packageTotal = totalPhotosCount * packagePrice;
   const showUpsell = favoritePhotos.length > 0 && favoritePhotos.length < totalPhotosCount;
 
+  const locationLabel = headerInfo ? formatLocationLabel(headerInfo.city, headerInfo.state) : null;
+  const dateLabel = headerInfo ? formatDateLabel(headerInfo.date) : null;
+  const categoryLabel = headerInfo?.categoryId ? eventTypeLabel(headerInfo.categoryId) : null;
+
   function handleRemove(photoId: string) {
     toggleFavorite(photoId);
   }
@@ -80,7 +91,21 @@ export function FavoritesPage() {
 
   return (
     <div className="favorites-page">
-      <h1 className="favorites-page__title">Minhas Favoritas</h1>
+      {headerInfo?.name && (
+        <div className="evento-hero potof-card">
+          {categoryLabel && <span className="potof-badge">{categoryLabel}</span>}
+          <h1 className="evento-hero__title">{headerInfo.name}</h1>
+          {(locationLabel || dateLabel || headerInfo.photosCount != null) && (
+            <div className="evento-hero__meta">
+              {locationLabel && <span>📍 {locationLabel}</span>}
+              {dateLabel && <span>🗓 {dateLabel}</span>}
+              {headerInfo.photosCount != null && <span>📷 {formatPhotosCount(headerInfo.photosCount)} fotos</span>}
+            </div>
+          )}
+        </div>
+      )}
+
+      <h2 className="favorites-page__title">Minhas Favoritas</h2>
 
       {sessionExpired && favoritePhotos.length === 0 && (
         <div className="favorites-page__empty">

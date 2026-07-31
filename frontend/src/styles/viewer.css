@@ -224,3 +224,37 @@
   padding: 8px 14px;
   border-radius: 999px;
 }
+
+/* Vertical drawer flavor, used on the event page: stops above the fixed purchase
+   footer (instead of covering the full viewport) so the footer stays visible and
+   reachable while the drawer is open. */
+.photo-viewer--drawer {
+  top: 0;
+  bottom: calc(var(--potof-footer-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.photo-viewer--drawer .photo-viewer__panel {
+  animation: potof-drawer-up 0.22s ease;
+}
+
+@keyframes potof-drawer-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .photo-viewer--drawer {
+    padding: 0;
+  }
+
+  .photo-viewer--drawer .photo-viewer__panel {
+    height: 100%;
+    border-radius: var(--potof-radius-lg) var(--potof-radius-lg) 0 0;
+  }
+}

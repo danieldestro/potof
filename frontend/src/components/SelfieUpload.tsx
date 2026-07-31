@@ -79,7 +79,7 @@ export function SelfieUpload({ onSearch, loading }: SelfieUploadProps) {
 
       <button
         type="button"
-        className="potof-btn potof-btn--primary selfie-upload__submit"
+        className="potof-btn potof-btn--accent selfie-upload__submit"
         onClick={handleSubmit}
         disabled={!selectedFile || loading}
       >

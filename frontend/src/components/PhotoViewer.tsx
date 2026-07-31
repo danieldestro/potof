@@ -53,6 +53,7 @@ interface PhotoViewerProps {
   isFavorite: (photoId: string) => boolean;
   onToggleFavorite: (photoId: string) => void;
   favoritesCount: number;
+  variant?: 'modal' | 'drawer';
 }
 
 const SWIPE_THRESHOLD_PX = 50;
@@ -65,6 +66,7 @@ export function PhotoViewer({
   isFavorite,
   onToggleFavorite,
   favoritesCount,
+  variant = 'modal',
 }: PhotoViewerProps) {
   const touchStartX = useRef<number | null>(null);
   const photo = photos[index];
@@ -108,7 +110,11 @@ export function PhotoViewer({
   if (!photo) return null;
 
   return (
-    <div className="photo-viewer" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div
+      className={`photo-viewer${variant === 'drawer' ? ' photo-viewer--drawer' : ''}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="photo-viewer__panel">
         <div className="photo-viewer__top">
           <div className="photo-viewer__fav-count" aria-label={`${favoritesCount} fotos favoritas`}>

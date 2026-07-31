@@ -5,6 +5,12 @@
   animation: potof-fade 0.25s ease;
 }
 
+/* Leaves room for the fixed purchase footer so page content scrolls above it
+   instead of being covered by it. */
+.evento-page--with-footer {
+  padding-bottom: calc(var(--potof-footer-height) + env(safe-area-inset-bottom, 0px) + 24px);
+}
+
 .evento-hero {
   padding: clamp(18px, 4vw, 24px);
   margin-bottom: clamp(16px, 4vw, 22px);
@@ -212,33 +218,53 @@
   z-index: 2;
 }
 
-.sticky-fav-bar {
-  position: sticky;
-  bottom: 16px;
-  margin-top: 20px;
-  background: var(--potof-text);
-  color: #fff;
-  border-radius: var(--potof-radius-md);
-  padding: 14px 18px;
+.purchase-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 450;
+  background: #fff;
+  color: var(--potof-text);
+  border-top: 5px solid var(--potof-yellow-accent);
+  padding: 14px clamp(16px, 4vw, 32px) calc(14px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);
 }
 
-.sticky-fav-bar__count {
-  font-size: 13px;
+.purchase-footer__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.purchase-footer__count {
+  font-size: 12px;
   font-weight: 700;
+  color: var(--potof-muted);
 }
 
-.sticky-fav-bar__btn {
-  background: var(--potof-primary);
-  color: #fff;
+.purchase-footer__total {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.purchase-footer__cta {
+  flex: none;
+  background: var(--potof-yellow-accent);
+  color: var(--potof-primary);
   border: none;
-  padding: 10px 18px;
+  padding: 12px 26px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.purchase-footer__cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

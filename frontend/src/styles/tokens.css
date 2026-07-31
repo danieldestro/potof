@@ -21,4 +21,8 @@
   /* Width of the event page's content column (photo thumbs grid included) — the photo
      viewer popup caps itself to this on large screens instead of stretching edge to edge. */
   --potof-content-max-width: 900px;
+
+  /* Visual height of the fixed purchase footer on the event page (excludes the safe-area
+     inset, which is added on top wherever this is used for clearance/offsets). */
+  --potof-footer-height: 72px;
 }

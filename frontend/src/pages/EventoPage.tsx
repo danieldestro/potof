@@ -10,7 +10,7 @@ import { SelfieUpload } from '../components/SelfieUpload';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { UpsellBanner } from '../components/UpsellBanner';
-import { StickyFavBar } from '../components/StickyFavBar';
+import { PurchaseFooter } from '../components/PurchaseFooter';
 import type { HeaderContext } from '../layouts/headerContext';
 import type { EventHeaderInfo, Photo } from '../types';
 
@@ -98,13 +98,14 @@ export function EventoPage() {
 
   const favCount = photos.filter((p) => favorites.has(p.id)).length;
   const { pricePerPhoto, packagePrice } = getMockEventMeta(eventId);
+  const favTotal = favCount * pricePerPhoto;
 
   const locationLabel = headerInfo ? formatLocationLabel(headerInfo.city, headerInfo.state) : null;
   const dateLabel = headerInfo ? formatDateLabel(headerInfo.date) : null;
   const categoryLabel = headerInfo?.categoryId ? eventTypeLabel(headerInfo.categoryId) : null;
 
   return (
-    <div className="evento-page">
+    <div className={`evento-page${status === 'results' ? ' evento-page--with-footer' : ''}`}>
       {headerInfo?.name && (
         <div className="evento-hero potof-card">
           {categoryLabel && <span className="potof-badge">{categoryLabel}</span>}
@@ -153,8 +154,8 @@ export function EventoPage() {
         </div>
       )}
 
-      {status === 'results' && favCount > 0 && (
-        <StickyFavBar eventId={eventId} count={favCount} photos={photos} />
+      {status === 'results' && (
+        <PurchaseFooter eventId={eventId} count={favCount} total={favTotal} photos={photos} />
       )}
 
       {viewerIndex !== null && (
@@ -166,6 +167,7 @@ export function EventoPage() {
           isFavorite={isFavorite}
           onToggleFavorite={toggleFavorite}
           favoritesCount={favCount}
+          variant="drawer"
         />
       )}
     </div>
