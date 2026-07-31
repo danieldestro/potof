@@ -65,5 +65,9 @@ export function useFavorites(eventId: string) {
 
   const isFavorite = useCallback((photoId: string) => favorites.has(photoId), [favorites]);
 
-  return { favorites, toggleFavorite, isFavorite };
+  const clearFavorites = useCallback(() => {
+    setFavorites(new Set());
+  }, []);
+
+  return { favorites, toggleFavorite, isFavorite, clearFavorites };
 }

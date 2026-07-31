@@ -5,6 +5,8 @@ import { useFavorites } from '../hooks/useFavorites';
 import { getMockEventMeta } from '../data/exploreCatalog';
 import { eventTypeLabel } from '../data/eventTypes';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
+import { getCachedEventInfo, setCachedEventInfo } from '../lib/eventInfoCache';
+import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { PurchaseFooter } from '../components/PurchaseFooter';
 import type { HeaderContext } from '../layouts/headerContext';
@@ -23,13 +25,21 @@ export function FavoritesPage() {
 
   const routerState = location.state as { photos?: Photo[]; event?: EventHeaderInfo } | null;
   const statePhotos = routerState?.photos ?? null;
-  const [allPhotos, setAllPhotos] = useState<Photo[] | null>(statePhotos);
+  // Entry points without router state (the header's cart/favorites icon, direct URL
+  // visits) fall back to the same in-memory cache EventoPage's own search fills —
+  // avoids an unnecessary re-hit of /api/eventos/{id}/fotos when we already have the
+  // photos from a search made moments earlier in this SPA session.
+  const [allPhotos, setAllPhotos] = useState<Photo[] | null>(
+    () => statePhotos ?? getCachedSearch(eventId)?.photos ?? null
+  );
   // The event page hands its already-fetched event data over via router state (same
-  // as `photos` above) so this page doesn't need to re-hit /api/eventos/{id}. Direct
-  // URL visits and entry points that don't have it (e.g. the header's favorites icon)
-  // fall back to fetching it here.
+  // as `photos` above) so this page doesn't need to re-hit /api/eventos/{id}. Entry
+  // points without it (direct URL visits, the header's favorites icon) fall back to
+  // eventInfoCache.ts first, then to fetching it here.
   const passedEvent = routerState?.event && routerState.event.id === eventId ? routerState.event : null;
-  const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(null);
+  const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(
+    () => getCachedEventInfo(eventId) ?? null
+  );
   const headerInfo = passedEvent ?? fetchedInfo;
   const [sessionExpired, setSessionExpired] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -41,11 +51,22 @@ export function FavoritesPage() {
   }, [eventId, setEventTitle]);
 
   useEffect(() => {
-    if (passedEvent) return;
+    if (passedEvent) {
+      setCachedEventInfo(passedEvent);
+      return;
+    }
+    const cached = getCachedEventInfo(eventId);
+    if (cached) {
+      setFetchedInfo(cached);
+      return;
+    }
     let cancelled = false;
     fetchEventInfo(eventId)
       .then((info) => {
-        if (!cancelled) setFetchedInfo({ id: eventId, ...info });
+        if (cancelled) return;
+        const event = { id: eventId, ...info };
+        setFetchedInfo(event);
+        setCachedEventInfo(event);
       })
       .catch((err) => console.error('[FavoritesPage] falha ao buscar dados do evento', err));
     return () => {
@@ -60,6 +81,7 @@ export function FavoritesPage() {
       .then((result) => {
         if (cancelled) return;
         setAllPhotos(result.photos);
+        setCachedSearch(eventId, { photos: result.photos, hasSearched: true, error: null });
         if (result.photos.length === 0 && favorites.size > 0) {
           setSessionExpired(true);
         }
@@ -82,6 +104,10 @@ export function FavoritesPage() {
   const totalPhotosCount = allPhotos?.length ?? 0;
   const packageTotal = totalPhotosCount * packagePrice;
   const showUpsell = favoritePhotos.length > 0 && favoritePhotos.length < totalPhotosCount;
+  // Favoriting every photo in the event qualifies for the package rate — same
+  // discount the upsell banner above the grid entices toward.
+  const isFullPackage = totalPhotosCount > 0 && favoritePhotos.length === totalPhotosCount;
+  const finalTotal = isFullPackage ? packageTotal : subtotal;
 
   const locationLabel = headerInfo ? formatLocationLabel(headerInfo.city, headerInfo.state) : null;
   const dateLabel = headerInfo ? formatDateLabel(headerInfo.date) : null;
@@ -93,7 +119,7 @@ export function FavoritesPage() {
 
   function goToCheckout() {
     navigate(`/evento/${eventId}/checkout`, {
-      state: { photos: favoritePhotos, total: subtotal, eventName: headerInfo?.name ?? null },
+      state: { photos: favoritePhotos, total: finalTotal, eventName: headerInfo?.name ?? null },
     });
   }
 
@@ -184,7 +210,8 @@ export function FavoritesPage() {
 
           <PurchaseFooter
             count={favoritePhotos.length}
-            total={subtotal}
+            total={finalTotal}
+            originalTotal={isFullPackage ? subtotal : undefined}
             ctaLabel="Comprar agora!"
             onCta={goToCheckout}
           />

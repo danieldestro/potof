@@ -11,6 +11,10 @@
   --potof-border: #ece3dc;
   --potof-viewer-bg: #151009;
 
+  --potof-danger: #c62f2f;
+  --potof-danger-bg: #fdecea;
+  --potof-danger-border: #f3b7ae;
+
   --potof-font-display: 'Archivo Black', 'Arial Black', sans-serif;
   --potof-font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 

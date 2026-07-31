@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useFavorites } from '../hooks/useFavorites';
 import type { Photo } from '../types';
 
 type Status = 'review' | 'processing' | 'success';
@@ -13,6 +14,7 @@ export function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>('review');
+  const { clearFavorites } = useFavorites(eventId);
 
   const state = location.state as { photos?: Photo[]; total?: number; eventName?: string | null } | null;
   const photos = state?.photos ?? [];
@@ -22,7 +24,12 @@ export function CheckoutPage() {
   function confirmPayment() {
     setStatus('processing');
     // Simulates payment processing — there's no real payment gateway behind this.
-    setTimeout(() => setStatus('success'), 1400);
+    setTimeout(() => {
+      setStatus('success');
+      // The purchased photos are exactly this event's current favorites — clear them
+      // so they don't linger as "favorited" (and re-purchasable) after checkout.
+      clearFavorites();
+    }, 1400);
   }
 
   if (photos.length === 0) {

@@ -6,6 +6,7 @@ import { getMockEventMeta } from '../data/exploreCatalog';
 import { eventTypeLabel } from '../data/eventTypes';
 import { setLastEventId } from '../lib/lastEvent';
 import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
+import { getCachedEventInfo, setCachedEventInfo } from '../lib/eventInfoCache';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
 import { SelfieUpload } from '../components/SelfieUpload';
 import { PhotoGrid } from '../components/PhotoGrid';
@@ -23,10 +24,13 @@ export function EventoPage() {
   const navigate = useNavigate();
   const { setEventTitle } = useOutletContext<HeaderContext>();
   // A click from Home/Eventos hands the event data over via router state so this
-  // page doesn't need to re-fetch/re-scrape it. Direct URL visits (no state) fall
-  // back to fetchEventInfo, which scrapes it from the fotop.com.br event page.
+  // page doesn't need to re-fetch/re-scrape it. Navigations without state (direct
+  // URL visits, "voltar" buttons) fall back to eventInfoCache.ts first, then to
+  // fetchEventInfo, which scrapes it from the fotop.com.br event page.
   const passedEvent = (location.state as { event?: EventHeaderInfo } | null)?.event ?? null;
-  const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(null);
+  const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(
+    () => getCachedEventInfo(eventId) ?? null
+  );
   const headerInfo = passedEvent && passedEvent.id === eventId ? passedEvent : fetchedInfo;
   const [photos, setPhotos] = useState<Photo[]>(() => getCachedSearch(eventId)?.photos ?? []);
   const [loading, setLoading] = useState(false);
@@ -46,11 +50,22 @@ export function EventoPage() {
   }, [eventId, photos, hasSearched, error]);
 
   useEffect(() => {
-    if (passedEvent && passedEvent.id === eventId) return;
+    if (passedEvent && passedEvent.id === eventId) {
+      setCachedEventInfo(passedEvent);
+      return;
+    }
+    const cached = getCachedEventInfo(eventId);
+    if (cached) {
+      setFetchedInfo(cached);
+      return;
+    }
     let cancelled = false;
     fetchEventInfo(eventId)
       .then((info) => {
-        if (!cancelled) setFetchedInfo({ id: eventId, ...info });
+        if (cancelled) return;
+        const event = { id: eventId, ...info };
+        setFetchedInfo(event);
+        setCachedEventInfo(event);
       })
       .catch((err) => console.error('[EventoPage] falha ao buscar dados do evento', err));
     return () => {
@@ -96,6 +111,13 @@ export function EventoPage() {
     });
   }
 
+  function startNewSearch() {
+    setPhotos([]);
+    setHasSearched(false);
+    setError(null);
+    setViewerIndex(null);
+  }
+
   const status: Status = loading
     ? 'loading'
     : photos.length > 0
@@ -126,15 +148,28 @@ export function EventoPage() {
             </div>
           )}
           {status === 'results' && (
-            <p className="evento-hero__results">{photos.length} fotos encontradas</p>
+            <div className="evento-hero__results-row">
+              <p className="evento-hero__results">{photos.length} fotos encontradas</p>
+              <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
+                Nova busca
+              </button>
+            </div>
           )}
+        </div>
+      )}
+
+      {status === 'empty' && error && (
+        <div className="evento-alert" role="alert">
+          <span className="evento-alert__icon" aria-hidden="true">
+            ⚠️
+          </span>
+          <p className="evento-alert__text">{error}</p>
         </div>
       )}
 
       {(status === 'idle' || status === 'empty') && (
         <div>
           <SelfieUpload onSearch={handleSearch} loading={loading} />
-          {status === 'empty' && error && <p className="evento-page__error">{error}</p>}
         </div>
       )}
 
