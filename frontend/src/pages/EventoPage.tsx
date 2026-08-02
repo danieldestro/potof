@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { fetchEventInfo, fetchEventPhotos, sendSelfie } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
+import { useAppConfig } from '../hooks/useAppConfig';
 import { getMockEventMeta } from '../data/exploreCatalog';
 import { eventTypeLabel } from '../data/eventTypes';
 import { setLastEventId } from '../lib/lastEvent';
@@ -38,6 +39,7 @@ export function EventoPage() {
   const [error, setError] = useState<string | null>(() => getCachedSearch(eventId)?.error ?? null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const { isFavorite, toggleFavorite, favorites } = useFavorites(eventId);
+  const { aiPhotoEditEnabled } = useAppConfig();
 
   useEffect(() => {
     setLastEventId(eventId);
@@ -220,6 +222,7 @@ export function EventoPage() {
           onToggleFavorite={toggleFavorite}
           favoritesCount={favCount}
           variant="drawer"
+          aiEnabled={aiPhotoEditEnabled}
         />
       )}
     </div>

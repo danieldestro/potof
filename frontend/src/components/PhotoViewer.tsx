@@ -1,5 +1,6 @@
-import { useEffect, useRef, type TouchEvent } from 'react';
+import { useEffect, useRef, useState, type TouchEvent } from 'react';
 import type { Photo } from '../types';
+import { AiEffectSheet } from './AiEffectSheet';
 
 function ThumbStrip({
   photos,
@@ -54,6 +55,7 @@ interface PhotoViewerProps {
   onToggleFavorite: (photoId: string) => void;
   favoritesCount: number;
   variant?: 'modal' | 'drawer';
+  aiEnabled?: boolean;
 }
 
 const SWIPE_THRESHOLD_PX = 50;
@@ -67,12 +69,20 @@ export function PhotoViewer({
   onToggleFavorite,
   favoritesCount,
   variant = 'modal',
+  aiEnabled = false,
 }: PhotoViewerProps) {
   const touchStartX = useRef<number | null>(null);
   const photo = photos[index];
+  const [showAiSheet, setShowAiSheet] = useState(false);
 
   const goPrev = () => onIndexChange((index - 1 + photos.length) % photos.length);
   const goNext = () => onIndexChange((index + 1) % photos.length);
+
+  // The AI sheet is per-photo — don't let it stay open (mid-effect or showing a
+  // result) when the user swipes/navs to a different photo in the viewer.
+  useEffect(() => {
+    setShowAiSheet(false);
+  }, [index]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -150,6 +160,17 @@ export function PhotoViewer({
           >
             {isFavorite(photo.id) ? '♥' : '♡'}
           </button>
+
+          {aiEnabled && (
+            <button
+              type="button"
+              className="photo-viewer__ai-action"
+              onClick={() => setShowAiSheet(true)}
+              aria-label="Gerar efeito com IA"
+            >
+              <span aria-hidden="true">✨</span> IA
+            </button>
+          )}
         </div>
 
         <button
@@ -165,6 +186,8 @@ export function PhotoViewer({
           <ThumbStrip photos={photos} index={index} onIndexChange={onIndexChange} />
         </div>
       </div>
+
+      {showAiSheet && <AiEffectSheet photo={photo} onClose={() => setShowAiSheet(false)} />}
     </div>
   );
 }

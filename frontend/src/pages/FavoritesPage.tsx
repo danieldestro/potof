@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { fetchEventInfo, fetchEventPhotos } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
+import { useAppConfig } from '../hooks/useAppConfig';
 import { getMockEventMeta } from '../data/exploreCatalog';
 import { eventTypeLabel } from '../data/eventTypes';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
@@ -22,6 +23,7 @@ export function FavoritesPage() {
   const navigate = useNavigate();
   const { setEventTitle } = useOutletContext<HeaderContext>();
   const { favorites, isFavorite, toggleFavorite } = useFavorites(eventId);
+  const { aiPhotoEditEnabled } = useAppConfig();
 
   const routerState = location.state as { photos?: Photo[]; event?: EventHeaderInfo } | null;
   const statePhotos = routerState?.photos ?? null;
@@ -227,6 +229,7 @@ export function FavoritesPage() {
           isFavorite={isFavorite}
           onToggleFavorite={toggleFavorite}
           favoritesCount={favoritePhotos.length}
+          aiEnabled={aiPhotoEditEnabled}
         />
       )}
     </div>

@@ -72,3 +72,20 @@ export function fetchEventPhotos(
 ): Promise<{ eventId: string; total: number; photos: Photo[]; message?: string }> {
   return request(`/api/eventos/${eventId}/fotos`);
 }
+
+export function fetchAppConfig(): Promise<{ features: { aiPhotoEdit: boolean } }> {
+  return request('/api/config');
+}
+
+export type AiEffect = 'remove_people' | 'superhero' | 'visual_effect';
+
+export function generatePhotoAiEffect(
+  photoUrl: string,
+  effect: AiEffect
+): Promise<{ mimeType: string; base64: string }> {
+  return request('/api/ai/photo-effect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photoUrl, effect }),
+  });
+}

@@ -1,0 +1,6 @@
+{
+  "remove_people": "Remova todas as demais pessoas desta foto, mantendo a principal. Preencha as áreas onde elas estavam de forma realista e natural, com base no restante do cenário (fundo, piso, objetos). Mantenha o resto da imagem (cenário, cores, iluminação) o mais fiel possível ao original.",
+  "superhero": "Transforme a pessoa principal desta foto em um super-herói, se homem, ou super-heroina, se mulher: adicione um traje estilizado de super-herói e uma capa. Mantenha o rosto da pessoa claramente reconhecível e preserve o cenário de fundo original.",
+  "military": "Transforme a pessoa principal desta foto em um militar (navy seal): adicione um traje estilizado de militar camuflado com capacete e equipamentos. Mantenha o rosto da pessoa claramente reconhecível e preserve o cenário de fundo original.",
+  "visual_effect": "Aplique um efeito visual artístico e vibrante nesta foto, como iluminação cinematográfica dramática, cores intensificadas e um leve efeito de partículas ou brilho. Mantenha as pessoas e o cenário da foto original reconhecíveis."
+}

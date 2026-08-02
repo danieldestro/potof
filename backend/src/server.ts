@@ -6,6 +6,8 @@ import cookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import { eventosRoutes } from './routes/eventos';
+import { configRoutes } from './routes/config';
+import { aiEffectsRoutes } from './routes/aiEffects';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
@@ -24,6 +26,8 @@ async function main(): Promise<void> {
   });
 
   await app.register(eventosRoutes);
+  await app.register(configRoutes);
+  await app.register(aiEffectsRoutes);
 
   app.get('/api/health', async () => ({ status: 'ok' }));
 
