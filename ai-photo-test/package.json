@@ -1,0 +1,14 @@
+{
+  "name": "ai-photo-test",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "generate": "tsx --env-file-if-exists=../backend/.env src/generate.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}

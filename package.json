@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "backend",
-    "frontend"
+    "frontend",
+    "ai-photo-test"
   ],
   "engines": {
     "node": ">=20"

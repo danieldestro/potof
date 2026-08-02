@@ -77,7 +77,7 @@ export function fetchAppConfig(): Promise<{ features: { aiPhotoEdit: boolean } }
   return request('/api/config');
 }
 
-export type AiEffect = 'remove_people' | 'superhero' | 'visual_effect';
+export type AiEffect = 'remove_people' | 'superhero' | 'artistic' | 'fantasy';
 
 export function generatePhotoAiEffect(
   photoUrl: string,

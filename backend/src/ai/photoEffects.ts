@@ -4,9 +4,9 @@ import type { FastifyBaseLogger } from 'fastify';
 import { config } from '../config';
 import effectPrompts from './prompts.json';
 
-export type AiEffect = 'remove_people' | 'superhero' | 'visual_effect';
+export type AiEffect = 'remove_people' | 'superhero' | 'military' | 'artistic' | 'fantasy';
 
-export const AI_EFFECTS: AiEffect[] = ['remove_people', 'superhero', 'visual_effect'];
+export const AI_EFFECTS: AiEffect[] = ['remove_people', 'superhero', 'military', 'artistic', 'fantasy'];
 
 // Prompts fixos por efeito, mantidos em prompts.json (não neste arquivo) para poderem
 // ser editados sem mexer em TypeScript — pedem explicitamente para preservar o que não
@@ -39,7 +39,7 @@ async function generateWithOpenAi(
 
   logger.info({ effect, provider: 'openai' }, 'ai: requesting image edit from OpenAI');
   const response = await client.images.edit({
-    model: 'gpt-image-1',
+    model: 'gpt-image-2',
     image: file,
     prompt: EFFECT_PROMPTS[effect],
   });
