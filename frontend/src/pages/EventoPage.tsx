@@ -160,14 +160,6 @@ export function EventoPage() {
               )}
             </div>
           )}
-          {status === 'results' && (
-            <div className="evento-hero__results-row">
-              <p className="evento-hero__results">{photos.length} fotos encontradas</p>
-              <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
-                Nova busca
-              </button>
-            </div>
-          )}
         </div>
       )}
 
@@ -192,6 +184,14 @@ export function EventoPage() {
           <p>Buscando suas fotos com reconhecimento facial…</p>
         </div>
       )}
+
+      {status === 'results' && (<div className="evento-hero__results-header">
+        <h2 className="favorites-page__title">Fotos do Evento</h2>
+          <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
+            Nova busca
+          </button>
+      </div>)}
+      {status === 'results' && <p className="evento-hero__results">{photos.length} fotos encontradas</p>}
 
       {status === 'results' && (
         <div>

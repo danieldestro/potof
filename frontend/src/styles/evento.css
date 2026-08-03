@@ -41,23 +41,22 @@
   vertical-align: -2px;
 }
 
-.evento-hero__results-row {
+.evento-hero__results-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 2px;
+}
+
+.evento-hero__results-header .favorites-page__title {
+  margin: 0;
 }
 
 .evento-hero__results {
-  margin: 4px 0 0;
+  margin: 2px 0 18px;
   font-size: 13px;
   font-weight: 700;
   color: var(--potof-muted);
-}
-
-.evento-hero__results-row .evento-hero__results {
-  margin-top: 0;
 }
 
 .evento-hero__new-search {

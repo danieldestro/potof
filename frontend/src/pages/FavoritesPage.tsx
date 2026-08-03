@@ -9,12 +9,10 @@ import { getCachedEventInfo, setCachedEventInfo } from '../lib/eventInfoCache';
 import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { PurchaseFooter } from '../components/PurchaseFooter';
+import { UpsellBanner } from '../components/UpsellBanner';
+import { CalendarIcon, CameraIcon, PinIcon } from '../components/icons';
 import type { HeaderContext } from '../layouts/headerContext';
 import type { EventHeaderInfo, Photo } from '../types';
-
-function formatBRL(value: number): string {
-  return value.toFixed(2).replace('.', ',');
-}
 
 export function FavoritesPage() {
   const { eventId = '' } = useParams();
@@ -117,6 +115,12 @@ export function FavoritesPage() {
     toggleFavorite(photoId);
   }
 
+  function addAllFavorites() {
+    (allPhotos ?? []).forEach((photo) => {
+      if (!isFavorite(photo.id)) toggleFavorite(photo.id);
+    });
+  }
+
   function goToCheckout() {
     navigate(`/evento/${eventId}/checkout`, {
       state: { photos: favoritePhotos, total: finalTotal, eventName: headerInfo?.name ?? null },
@@ -131,9 +135,21 @@ export function FavoritesPage() {
           <h1 className="evento-hero__title">{headerInfo.name}</h1>
           {(locationLabel || dateLabel || headerInfo.photosCount != null) && (
             <div className="evento-hero__meta">
-              {locationLabel && <span>📍 {locationLabel}</span>}
-              {dateLabel && <span>🗓 {dateLabel}</span>}
-              {headerInfo.photosCount != null && <span>📷 {formatPhotosCount(headerInfo.photosCount)} fotos</span>}
+              {dateLabel && (
+                <span>
+                  <CalendarIcon className="evento-hero__meta-icon" /> {dateLabel}
+                </span>
+              )}
+              {headerInfo.photosCount != null && (
+                <span>
+                  <CameraIcon className="evento-hero__meta-icon" /> {formatPhotosCount(headerInfo.photosCount)} fotos
+                </span>
+              )}
+              {locationLabel && (
+                <span>
+                  <PinIcon className="evento-hero__meta-icon" /> {locationLabel}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -170,10 +186,12 @@ export function FavoritesPage() {
       {favoritePhotos.length > 0 && (
         <>
           {showUpsell && (
-            <p className="favorites-page__upsell">
-              Leve todas as {totalPhotosCount} fotos por apenas R$ {formatBRL(packageTotal)} (R${' '}
-              {packagePrice},00/foto)
-            </p>
+            <UpsellBanner
+              photosCount={totalPhotosCount}
+              pricePerPhoto={pricePerPhoto}
+              packagePrice={packagePrice}
+              onAddAllFavorites={addAllFavorites}
+            />
           )}
 
           <div className="photo-grid favorites-page__grid">
@@ -212,7 +230,7 @@ export function FavoritesPage() {
             count={favoritePhotos.length}
             total={finalTotal}
             originalTotal={isFullPackage ? subtotal : undefined}
-            ctaLabel="Comprar agora!"
+            ctaLabel="Comprar agora"
             onCta={goToCheckout}
           />
         </>
