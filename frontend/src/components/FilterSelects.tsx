@@ -27,7 +27,7 @@ export function FilterSelects({
         value={categoryFilter}
         onChange={(e) => onCategoryChange(e.target.value)}
       >
-        <option value="all">Todas categorias</option>
+        <option value="all">Todas Categorias</option>
         {categories.map((opt) => (
           <option key={opt.id} value={opt.id}>
             {opt.label}
@@ -39,10 +39,10 @@ export function FilterSelects({
         value={stateFilter}
         onChange={(e) => onStateChange(e.target.value)}
       >
-        <option value="all">Todos os estados</option>
+        <option value="all">Todos Estados</option>
         {states.map((opt) => (
           <option key={opt.id} value={opt.id}>
-            {opt.label}
+            {opt.id}
           </option>
         ))}
       </select>

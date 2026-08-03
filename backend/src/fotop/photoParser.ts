@@ -68,13 +68,13 @@ export function parseNoResultsMessage(html: string): string | null {
 
 // The event's display name lives in h1.nome-evento-interna > a on fotos/eventos?evento={id}
 // (e.g. "Fotos Treino USP - 27.06.26 - Vários Fotógrafos"), not in <title> (which is prefixed
-// with "Fotop - " and awkward to split reliably). The "Fotos " lead-in is part of fotop's own
-// page copy, not the event's actual name, so it's stripped here.
+// with "Fotop - " and awkward to split reliably). The "Fotos "/"Photos " lead-in is part of
+// fotop's own page copy, not the event's actual name, so it's stripped here.
 export function parseEventName(html: string): string | null {
   const $ = cheerio.load(html);
   const text = $('h1.nome-evento-interna a').first().text().trim();
   if (!text) return null;
-  return text.replace(/^Fotos\s+/i, '').trim();
+  return text.replace(/^(Fotos|Photos)\s+/i, '').trim();
 }
 
 export interface EventLocalData {

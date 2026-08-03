@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import type { EventSummary } from '../types';
 import { eventTypeLabel } from '../data/eventTypes';
 import { formatDateLabel } from '../lib/eventDisplay';
+import { CalendarIcon, PinIcon } from './icons';
 
 interface EventSummaryCardProps {
   event: EventSummary;
@@ -31,10 +32,17 @@ export function EventSummaryCard({ event }: EventSummaryCardProps) {
         <h3 className="event-card__name">{event.name}</h3>
         <div className="event-card__meta">
           <span>
-            📍 {event.city}
+            {dateLabel && (
+              <span>
+                <CalendarIcon className="event-card__meta-icon" />{' '}
+                {dateLabel}
+              </span>
+            )}
+            {' '}
+            <PinIcon className="event-card__meta-icon" />{' '}
+            {event.city}
             {event.state ? `, ${event.state}` : ''}
           </span>
-          {dateLabel && <span>🗓 {dateLabel}</span>}
         </div>
       </div>
     </div>

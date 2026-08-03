@@ -14,6 +14,7 @@ import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { UpsellBanner } from '../components/UpsellBanner';
 import { PurchaseFooter } from '../components/PurchaseFooter';
+import { CalendarIcon, CameraIcon, PinIcon } from '../components/icons';
 import type { HeaderContext } from '../layouts/headerContext';
 import type { EventHeaderInfo, Photo } from '../types';
 
@@ -144,17 +145,21 @@ export function EventoPage() {
           <h1 className="evento-hero__title">{headerInfo.name}</h1>
           {(locationLabel || dateLabel || headerInfo.photosCount != null) && (
             <div className="evento-hero__meta">
-              {locationLabel && <span>📍 {locationLabel}</span>}
-              {dateLabel && <span>🗓 {dateLabel}</span>}
-              {headerInfo.photosCount != null && <span>📷 {formatPhotosCount(headerInfo.photosCount)} fotos</span>}
-            </div>
-          )}
-          {status === 'results' && (
-            <div className="evento-hero__results-row">
-              <p className="evento-hero__results">{photos.length} fotos encontradas</p>
-              <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
-                Nova busca
-              </button>
+              {dateLabel && (
+                <span>
+                  <CalendarIcon className="evento-hero__meta-icon" /> {dateLabel}
+                </span>
+              )}
+              {headerInfo.photosCount != null && (
+                <span>
+                  <CameraIcon className="evento-hero__meta-icon" /> {formatPhotosCount(headerInfo.photosCount)} fotos
+                </span>
+              )}
+              {locationLabel && (
+                <span>
+                  <PinIcon className="evento-hero__meta-icon" /> {locationLabel}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -181,6 +186,14 @@ export function EventoPage() {
           <p>Buscando suas fotos com reconhecimento facial…</p>
         </div>
       )}
+
+      {status === 'results' && (<div className="evento-hero__results-header">
+        <h2 className="favorites-page__title">Fotos do Evento</h2>
+          <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
+            Nova busca
+          </button>
+      </div>)}
+      {status === 'results' && <p className="evento-hero__results">{photos.length} fotos encontradas</p>}
 
       {status === 'results' && (
         <div>
