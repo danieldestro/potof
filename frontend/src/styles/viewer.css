@@ -9,6 +9,12 @@
   touch-action: pan-y;
 }
 
+/* Reserves room for the top bar (close button + favorites counter) and the thumbstrip
+   footer below the desktop breakpoint. Centering the frame via align-items would
+   otherwise split this space evenly above and below it, leaving only half the intended
+   clearance at each edge — padding instead shrinks the centered area to the actual safe
+   zone. Must match the .photo-viewer__image max-height calc below exactly, or the two
+   disagree about where the safe zone ends. */
 .photo-viewer__panel {
   position: relative;
   width: 100%;
@@ -16,6 +22,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-top: calc(88px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.photo-viewer--drawer .photo-viewer__panel {
+  /* The drawer's outer box (see .photo-viewer--drawer) already stops above the fixed
+     purchase footer and its safe-area, so only the internal thumbstrip reserve applies. */
+  padding-bottom: 96px;
 }
 
 /* On large screens the popup doesn't need to fill the whole viewport — cap it (and center
@@ -35,6 +49,8 @@
     border-radius: var(--potof-radius-lg);
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
     overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 
@@ -48,14 +64,37 @@
   max-height: 100%;
 }
 
+/* Below the desktop breakpoint the frame's height (not width) is the binding constraint,
+   so the image's max-height must leave room for the top bar (close button + favorites
+   counter, ~88px) and the thumbstrip footer (14px + 52px thumb + 14px padding + a small
+   visual gap, ~96px) — otherwise a tall portrait photo can render underneath either one,
+   hiding the close/favorite controls or the favorite button pinned to its own corner.
+   Uses dvh instead of vh so the cap tracks the real visible area as iOS shows/hides its
+   address bar, instead of a stale value computed against the largest possible viewport. */
 .photo-viewer__image {
   display: block;
   max-width: min(94vw, 760px);
-  max-height: min(74vh, 760px);
+  max-height: min(
+    calc(100dvh - 88px - env(safe-area-inset-top, 0px) - 96px - env(safe-area-inset-bottom, 0px)),
+    760px
+  );
   width: auto;
   height: auto;
   object-fit: contain;
   border-radius: 12px;
+}
+
+/* The drawer variant's own box already stops above the event page's fixed purchase
+   footer (see .photo-viewer--drawer below), so its available height is shorter than the
+   full viewport by that same amount — the image cap needs to account for it too. */
+.photo-viewer--drawer .photo-viewer__image {
+  max-height: min(
+    calc(
+      100dvh - 88px - env(safe-area-inset-top, 0px) - var(--potof-footer-height) -
+        env(safe-area-inset-bottom, 0px) - 96px
+    ),
+    760px
+  );
 }
 
 @media (min-width: 768px) {
@@ -134,6 +173,14 @@
   z-index: 3;
   padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
+
+/* The drawer's own box already stops above the event page's fixed purchase footer (see
+   .photo-viewer--drawer), which reserves the home-indicator safe area on its own — adding
+   it again here just pushes the carousel further from the drawer's bottom edge than it
+   needs to be. */
+.photo-viewer--drawer .photo-viewer__footer {
+  padding-bottom: 14px;
 }
 
 .photo-viewer__thumbstrip {
@@ -256,5 +303,6 @@
   .photo-viewer--drawer .photo-viewer__panel {
     height: 100%;
     border-radius: var(--potof-radius-lg) var(--potof-radius-lg) 0 0;
+    padding-bottom: 0;
   }
 }
