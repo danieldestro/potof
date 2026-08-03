@@ -430,6 +430,10 @@
   font-weight: 600;
 }
 
+.event-card__meta-icon {
+  vertical-align: -2px;
+}
+
 .explore-page {
   max-width: 1200px;
   margin: 0 auto;

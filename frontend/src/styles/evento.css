@@ -37,6 +37,10 @@
   color: var(--potof-muted);
 }
 
+.evento-hero__meta-icon {
+  vertical-align: -2px;
+}
+
 .evento-hero__results-row {
   display: flex;
   align-items: center;

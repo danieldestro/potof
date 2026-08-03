@@ -13,6 +13,7 @@ import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { UpsellBanner } from '../components/UpsellBanner';
 import { PurchaseFooter } from '../components/PurchaseFooter';
+import { CalendarIcon, CameraIcon, PinIcon } from '../components/icons';
 import type { HeaderContext } from '../layouts/headerContext';
 import type { EventHeaderInfo, Photo } from '../types';
 
@@ -142,9 +143,21 @@ export function EventoPage() {
           <h1 className="evento-hero__title">{headerInfo.name}</h1>
           {(locationLabel || dateLabel || headerInfo.photosCount != null) && (
             <div className="evento-hero__meta">
-              {locationLabel && <span>📍 {locationLabel}</span>}
-              {dateLabel && <span>🗓 {dateLabel}</span>}
-              {headerInfo.photosCount != null && <span>📷 {formatPhotosCount(headerInfo.photosCount)} fotos</span>}
+              {dateLabel && (
+                <span>
+                  <CalendarIcon className="evento-hero__meta-icon" /> {dateLabel}
+                </span>
+              )}
+              {headerInfo.photosCount != null && (
+                <span>
+                  <CameraIcon className="evento-hero__meta-icon" /> {formatPhotosCount(headerInfo.photosCount)} fotos
+                </span>
+              )}
+              {locationLabel && (
+                <span>
+                  <PinIcon className="evento-hero__meta-icon" /> {locationLabel}
+                </span>
+              )}
             </div>
           )}
           {status === 'results' && (
