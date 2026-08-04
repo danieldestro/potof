@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EVENT_TYPES } from '../data/eventTypes';
 import { ESTADOS } from '../data/estados';
 import { CategoryPills } from '../components/CategoryPills';
 import { FilterSelects } from '../components/FilterSelects';
@@ -8,6 +7,7 @@ import { EventSummaryCard } from '../components/EventSummaryCard';
 import { EventNameAutocomplete } from '../components/EventNameAutocomplete';
 import { ViewToggle, type EventsViewMode } from '../components/ViewToggle';
 import { useEventosBusca, toApiFilter } from '../hooks/useEventosBusca';
+import { useCategorias } from '../hooks/useCategorias';
 import { getUserPreferences, setUserPreferredCategoria, setUserPreferredEstado } from '../lib/userPreferences';
 
 const STATE_FILTER_OPTIONS = ESTADOS.map((e) => ({ id: e.id, label: e.descricao }));
@@ -19,6 +19,8 @@ export function HomePage() {
   const [stateFilter, setStateFilter] = useState(() => getUserPreferences().estado);
   const [viewMode, setViewMode] = useState<EventsViewMode>('compact');
   const navigate = useNavigate();
+  const { categorias } = useCategorias();
+  const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome }));
 
   const {
     events: recentEvents,
@@ -63,7 +65,7 @@ export function HomePage() {
 
       <div className="home-content">
         <div className="category-pills-wrap potof-card">
-          <CategoryPills categories={EVENT_TYPES} onSelect={(id) => goExplore(id)} />
+          <CategoryPills categories={categoryOptions} onSelect={(id) => goExplore(id)} />
         </div>
 
         <div className="home-section-header">
@@ -72,7 +74,7 @@ export function HomePage() {
             <ViewToggle value={viewMode} onChange={setViewMode} />
           </div>
           <FilterSelects
-            categories={EVENT_TYPES}
+            categories={categoryOptions}
             states={STATE_FILTER_OPTIONS}
             categoryFilter={categoryFilter}
             stateFilter={stateFilter}

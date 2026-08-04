@@ -19,12 +19,12 @@ export interface EventSummary {
   categoryId: string;
   photosCount: number;
   hasEventPhoto: boolean;
-  coverUrl: string;
+  coverUrl: string | null;
 }
 
 // Data shown in the event page's header card. A full EventSummary (from the
-// Home/Eventos listing) satisfies this; the autocomplete suggestion and the
-// direct-URL scrape fallback only ever fill part of it.
+// Home/Eventos listing) satisfies this; the autocomplete suggestion only
+// ever fills part of it.
 export interface EventHeaderInfo {
   id: string;
   name: string | null;
@@ -34,6 +34,8 @@ export interface EventHeaderInfo {
   date: string | null;
   photosCount: number | null;
   categoryId: string | null;
+  /** true = provedor próprio (galeria local, sem busca por selfie). */
+  proprio: boolean;
 }
 
 export interface EventNameSuggestion {
@@ -43,4 +45,10 @@ export interface EventNameSuggestion {
   location: string;
   slug: string;
   status: string;
+}
+
+export interface Categoria {
+  id: number;
+  slug: string;
+  nome: string;
 }

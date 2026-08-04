@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { EVENT_TYPES } from '../../frontend/src/data/eventTypes';
+import { CATEGORIA_SEED_DATA } from './categoriaSeedData';
 
 const prisma = new PrismaClient();
 
+// Admin é só um Usuario com perfil=admin — não existe mais tabela separada.
 async function seedAdmin(): Promise<void> {
   const email = process.env.ADMIN_SEED_EMAIL;
   const password = process.env.ADMIN_SEED_PASSWORD;
@@ -12,48 +13,72 @@ async function seedAdmin(): Promise<void> {
     return;
   }
 
-  const existing = await prisma.adminUsuario.findUnique({ where: { email } });
+  const existing = await prisma.usuario.findUnique({ where: { email } });
   if (existing) {
     console.log(`Admin já existe: ${email}`);
     return;
   }
 
   const senhaHash = await bcrypt.hash(password, 10);
-  await prisma.adminUsuario.create({ data: { nome: 'Admin', email, senhaHash } });
+  await prisma.usuario.create({ data: { nome: 'Admin', email, senhaHash, perfil: 'admin' } });
   console.log(`Admin criado: ${email}`);
 }
 
-async function seedProvedores(): Promise<void> {
-  await prisma.provedor.upsert({
-    where: { nome: 'Potof' },
+async function seedProvedores(): Promise<{ potofId: number; fotopId: number }> {
+  const potof = await prisma.provedor.upsert({
+    where: { slug: 'potof' },
     update: {},
-    create: { nome: 'Potof', descricao: 'Provedor próprio do potof.', proprio: true },
+    create: { slug: 'potof', nome: 'Potof', descricao: 'Provedor próprio do potof.', proprio: true },
   });
-  await prisma.provedor.upsert({
-    where: { nome: 'Fotop' },
+  const fotop = await prisma.provedor.upsert({
+    where: { slug: 'fotop' },
     update: {},
-    create: { nome: 'Fotop', descricao: 'fotop.com.br', urlSite: 'https://fotop.com.br', proprio: false },
+    create: {
+      slug: 'fotop',
+      nome: 'Fotop',
+      descricao: 'fotop.com.br',
+      urlSite: 'https://fotop.com.br',
+      proprio: false,
+    },
   });
   console.log('Provedores seed: Potof, Fotop');
+  return { potofId: potof.id, fotopId: fotop.id };
 }
 
-// Reaproveita a taxonomia de categorias já mantida para os filtros do site
-// público (frontend/src/data/eventTypes.ts) em vez de recriá-la manualmente.
+// Os ids em CATEGORIA_SEED_DATA são os códigos numéricos do fotop
+// (id_estacoes) — ver comentário em categoriaSeedData.ts sobre por que
+// Categoria.id fica alinhado a eles em vez de autoincrement livre.
 async function seedCategorias(): Promise<void> {
-  for (const type of EVENT_TYPES) {
+  for (const item of CATEGORIA_SEED_DATA) {
     await prisma.categoria.upsert({
-      where: { slug: type.name },
-      update: { nome: type.label },
-      create: { slug: type.name, nome: type.label },
+      where: { id: item.id },
+      update: { slug: item.slug, nome: item.nome },
+      create: { id: item.id, slug: item.slug, nome: item.nome },
     });
   }
-  console.log(`Categorias seed: ${EVENT_TYPES.length}`);
+  console.log(`Categorias seed: ${CATEGORIA_SEED_DATA.length}`);
+}
+
+// Mapeamento identidade pro Fotop: como Categoria.id já é o próprio código do
+// fotop, idCategoriaProvedor é sempre igual a String(categoriaId). Trivial
+// hoje, mas exercita o mesmo mecanismo que o sync de um futuro provedor com
+// numeração diferente vai depender de verdade.
+async function seedCategoriasProvedores(fotopId: number): Promise<void> {
+  for (const item of CATEGORIA_SEED_DATA) {
+    await prisma.categoriaProvedor.upsert({
+      where: { categoriaId_provedorId: { categoriaId: item.id, provedorId: fotopId } },
+      update: { idCategoriaProvedor: String(item.id) },
+      create: { categoriaId: item.id, provedorId: fotopId, idCategoriaProvedor: String(item.id) },
+    });
+  }
+  console.log(`Mapeamentos categoria-provedor (Fotop) seed: ${CATEGORIA_SEED_DATA.length}`);
 }
 
 async function main(): Promise<void> {
   await seedAdmin();
-  await seedProvedores();
+  const { fotopId } = await seedProvedores();
   await seedCategorias();
+  await seedCategoriasProvedores(fotopId);
 }
 
 main()

@@ -1,8 +1,13 @@
 import { DEFAULT_ESTADO_ID } from '../data/estados';
-import { DEFAULT_CATEGORY_ID } from '../data/eventTypes';
 
 // Deliberately the bare key "user_preferences" (no "potof:" prefix), per spec.
 const USER_PREFERENCES_KEY = 'user_preferences';
+
+// App-wide default category filter (id do fotop pra "Treinos" — decisão de
+// produto, mesmo a categoria sendo rotulada "Treinos" e não "Corrida de rua").
+// Categorias em si agora vêm do BD via useCategorias(), mas esse default
+// específico é só uma preferência de UI, independente da fonte dos dados.
+const DEFAULT_CATEGORY_ID = '22';
 
 export interface UserPreferences {
   estado: string;

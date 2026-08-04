@@ -29,6 +29,9 @@ export interface CrudOptions<TCreate, TUpdate> {
   buildFilters?: (query: Record<string, string | undefined>) => Record<string, unknown>;
   orderBy?: Record<string, 'asc' | 'desc'>;
   include?: Record<string, unknown>;
+  /** Runs after zod validation, before the Prisma call — e.g. hashing a plaintext password field. */
+  beforeCreate?: (data: TCreate) => Promise<Record<string, unknown>>;
+  beforeUpdate?: (data: TUpdate) => Promise<Record<string, unknown>>;
 }
 
 function containsFilter(fieldPath: string, q: string): Record<string, unknown> {
@@ -46,7 +49,18 @@ export function registerCrudRoutes<TCreate, TUpdate>(
   app: FastifyInstance,
   opts: CrudOptions<TCreate, TUpdate>
 ): void {
-  const { path, delegate, createSchema, updateSchema, searchFields = [], buildFilters, orderBy, include } = opts;
+  const {
+    path,
+    delegate,
+    createSchema,
+    updateSchema,
+    searchFields = [],
+    buildFilters,
+    orderBy,
+    include,
+    beforeCreate,
+    beforeUpdate,
+  } = opts;
 
   app.get(path, { preHandler: requireAdmin }, async (request, reply) => {
     const query = request.query as Record<string, string | undefined>;
@@ -93,7 +107,8 @@ export function registerCrudRoutes<TCreate, TUpdate>(
       return reply.status(400).send({ error: 'Dados inválidos.', issues: parsed.error.issues });
     }
     try {
-      const item = await delegate.create({ data: parsed.data, include });
+      const data = beforeCreate ? await beforeCreate(parsed.data) : parsed.data;
+      const item = await delegate.create({ data, include });
       return reply.status(201).send(item);
     } catch (err) {
       return handlePrismaError(err, reply);
@@ -107,7 +122,8 @@ export function registerCrudRoutes<TCreate, TUpdate>(
       return reply.status(400).send({ error: 'Dados inválidos.', issues: parsed.error.issues });
     }
     try {
-      const item = await delegate.update({ where: { id }, data: parsed.data, include });
+      const data = beforeUpdate ? await beforeUpdate(parsed.data) : parsed.data;
+      const item = await delegate.update({ where: { id }, data, include });
       return reply.send(item);
     } catch (err) {
       return handlePrismaError(err, reply);

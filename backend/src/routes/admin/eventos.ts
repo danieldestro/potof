@@ -16,6 +16,7 @@ const createSchema = z.object({
   provedorId: z.coerce.number().int().positive(),
   idEventoProvedor: optionalText,
   urlSite: optionalUrl,
+  urlCapa: optionalUrl,
   searchSelfie: z.boolean().optional(),
   searchBib: z.boolean().optional(),
   searchName: z.boolean().optional(),
@@ -28,6 +29,7 @@ function buildFilters(query: Record<string, string | undefined>): Record<string,
   const where: Record<string, unknown> = {};
   if (query.categoriaId) where.categoriaId = Number.parseInt(query.categoriaId, 10);
   if (query.provedorId) where.provedorId = Number.parseInt(query.provedorId, 10);
+  if (query.uf) where.uf = query.uf;
   return where;
 }
 

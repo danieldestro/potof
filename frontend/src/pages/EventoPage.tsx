@@ -3,8 +3,9 @@ import { useLocation, useNavigate, useOutletContext, useParams } from 'react-rou
 import { fetchEventInfo, fetchEventPhotos, sendSelfie } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
 import { useAppConfig } from '../hooks/useAppConfig';
+import { useCategorias } from '../hooks/useCategorias';
+import { getCategoriaLabel } from '../lib/categorias';
 import { getMockEventMeta } from '../data/exploreCatalog';
-import { eventTypeLabel } from '../data/eventTypes';
 import { setLastEventId } from '../lib/lastEvent';
 import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
 import { getCachedEventInfo, setCachedEventInfo } from '../lib/eventInfoCache';
@@ -25,10 +26,12 @@ export function EventoPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { setEventTitle } = useOutletContext<HeaderContext>();
-  // A click from Home/Eventos hands the event data over via router state so this
-  // page doesn't need to re-fetch/re-scrape it. Navigations without state (direct
-  // URL visits, "voltar" buttons) fall back to eventInfoCache.ts first, then to
-  // fetchEventInfo, which scrapes it from the fotop.com.br event page.
+  // A click from Home/Eventos hands the event data over via router state, used below
+  // only to paint the header card instantly. The authoritative data — in particular
+  // `proprio`, which decides selfie-search vs. gallery mode — always comes from
+  // `fetchedInfo` (cache or a fresh GET /api/eventos/:id, now a fast local DB read,
+  // not a scrape) since the passed-state object can't be trusted to know that (e.g.
+  // a click from the name autocomplete never has it).
   const passedEvent = (location.state as { event?: EventHeaderInfo } | null)?.event ?? null;
   const [fetchedInfo, setFetchedInfo] = useState<EventHeaderInfo | null>(
     () => getCachedEventInfo(eventId) ?? null
@@ -41,6 +44,7 @@ export function EventoPage() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const { isFavorite, toggleFavorite, favorites } = useFavorites(eventId);
   const { aiPhotoEditEnabled } = useAppConfig();
+  const { categorias } = useCategorias();
 
   useEffect(() => {
     setLastEventId(eventId);
@@ -53,10 +57,6 @@ export function EventoPage() {
   }, [eventId, photos, hasSearched, error]);
 
   useEffect(() => {
-    if (passedEvent && passedEvent.id === eventId) {
-      setCachedEventInfo(passedEvent);
-      return;
-    }
     const cached = getCachedEventInfo(eventId);
     if (cached) {
       setFetchedInfo(cached);
@@ -74,7 +74,7 @@ export function EventoPage() {
     return () => {
       cancelled = true;
     };
-  }, [eventId, passedEvent]);
+  }, [eventId]);
 
   useEffect(() => {
     document.title = headerInfo?.name ? `${headerInfo.name} · potof` : 'potof';
@@ -86,6 +86,29 @@ export function EventoPage() {
     // doesn't flash in the header on mount.
     setEventTitle(null);
   }, [eventId, setEventTitle]);
+
+  // Provedor próprio: no selfie search — the gallery loads on its own as soon as
+  // we know `proprio` is true (only from the authoritative fetch, see above).
+  useEffect(() => {
+    if (fetchedInfo?.proprio !== true || hasSearched) return;
+    setLoading(true);
+    setError(null);
+    fetchEventPhotos(eventId)
+      .then((result) => {
+        setPhotos(result.photos);
+        if (result.photos.length === 0) {
+          setError(result.message ?? 'Nenhuma foto cadastrada para este evento ainda.');
+        }
+      })
+      .catch((err) => {
+        console.error('[EventoPage] falha ao carregar galeria do evento', err);
+        setError('Não foi possível carregar as fotos agora. Tente novamente.');
+      })
+      .finally(() => {
+        setLoading(false);
+        setHasSearched(true);
+      });
+  }, [fetchedInfo?.proprio, eventId, hasSearched]);
 
   async function handleSearch(file: File) {
     setLoading(true);
@@ -121,6 +144,7 @@ export function EventoPage() {
     setViewerIndex(null);
   }
 
+  const proprio = fetchedInfo?.proprio;
   const status: Status = loading
     ? 'loading'
     : photos.length > 0
@@ -135,7 +159,7 @@ export function EventoPage() {
 
   const locationLabel = headerInfo ? formatLocationLabel(headerInfo.city, headerInfo.state) : null;
   const dateLabel = headerInfo ? formatDateLabel(headerInfo.date) : null;
-  const categoryLabel = headerInfo?.categoryId ? eventTypeLabel(headerInfo.categoryId) : null;
+  const categoryLabel = headerInfo?.categoryId ? getCategoriaLabel(categorias, headerInfo.categoryId) : null;
 
   return (
     <div className={`evento-page${status === 'results' ? ' evento-page--with-footer' : ''}`}>
@@ -174,7 +198,7 @@ export function EventoPage() {
         </div>
       )}
 
-      {(status === 'idle' || status === 'empty') && (
+      {proprio === false && (status === 'idle' || status === 'empty') && (
         <div>
           <SelfieUpload onSearch={handleSearch} loading={loading} />
         </div>
@@ -183,16 +207,20 @@ export function EventoPage() {
       {status === 'loading' && (
         <div className="evento-loading potof-card">
           <div className="evento-loading__spinner" />
-          <p>Buscando suas fotos com reconhecimento facial…</p>
+          <p>{proprio ? 'Carregando fotos do evento…' : 'Buscando suas fotos com reconhecimento facial…'}</p>
         </div>
       )}
 
-      {status === 'results' && (<div className="evento-hero__results-header">
-        <h2 className="favorites-page__title">Fotos do Evento</h2>
-          <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
-            Nova busca
-          </button>
-      </div>)}
+      {status === 'results' && (
+        <div className="evento-hero__results-header">
+          <h2 className="favorites-page__title">Fotos do Evento</h2>
+          {proprio === false && (
+            <button type="button" className="evento-hero__new-search" onClick={startNewSearch}>
+              Nova busca
+            </button>
+          )}
+        </div>
+      )}
       {status === 'results' && <p className="evento-hero__results">{photos.length} fotos encontradas</p>}
 
       {status === 'results' && (

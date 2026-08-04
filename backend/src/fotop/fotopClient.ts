@@ -7,8 +7,6 @@ import { getOrCreateJar } from './cookieSession';
 
 export const FOTOP_BASE_URL = 'https://fotop.com.br';
 export const FOTOP_PHOTOS_BASE_URL = 'https://photos.fotop.com';
-// Yes, a different domain (no ".br") — the name-autocomplete webservice only exists here.
-export const FOTOP_WEB_BASE_URL = 'https://fotop.com';
 
 const noopLogger: FastifyBaseLogger = {
   info: () => {},
@@ -174,50 +172,6 @@ export async function fetchEventosBusca(
 
   if (res.status >= 400) {
     logger.warn({ status: res.status, body: preview(res.data) }, 'fotop: fetchEventosBusca returned an error status');
-  }
-
-  return events;
-}
-
-// Raw shape from GET /fotos/webservices/eventos/nome-eventos on fotop.com (name-autocomplete,
-// separate webservice from the busca-eventos listing above). "local" arrives pre-formatted
-// as "Cidade - UF" rather than split fields.
-export interface FotopEventoNomeRaw {
-  nome: string;
-  id: string;
-  data: string;
-  local: string;
-  slug: string;
-  busca: boolean;
-  facial: boolean;
-  status: string;
-  parceiro: string;
-}
-
-export async function searchEventosPorNome(
-  params: { nome: string; estado?: string },
-  logger: FastifyBaseLogger = noopLogger
-): Promise<FotopEventoNomeRaw[]> {
-  const res = await axios.get(`${FOTOP_WEB_BASE_URL}/fotos/webservices/eventos/nome-eventos`, {
-    headers: BROWSER_HEADERS,
-    validateStatus: () => true,
-    params: {
-      pais: 'BR',
-      estado: params.estado ?? '',
-      h: 1,
-      n: params.nome,
-    },
-  });
-
-  const events = Array.isArray(res.data) ? (res.data as FotopEventoNomeRaw[]) : [];
-
-  logger.info(
-    { nome: params.nome, estado: params.estado, status: res.status, count: events.length },
-    'fotop: searchEventosPorNome response'
-  );
-
-  if (res.status >= 400) {
-    logger.warn({ status: res.status, body: preview(res.data) }, 'fotop: searchEventosPorNome returned an error status');
   }
 
   return events;

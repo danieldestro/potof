@@ -1,4 +1,4 @@
-import type { EventHeaderInfo, EventNameSuggestion, EventSummary, Photo } from '../types';
+import type { Categoria, EventHeaderInfo, EventNameSuggestion, EventSummary, Photo } from '../types';
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -75,6 +75,10 @@ export function fetchEventPhotos(
 
 export function fetchAppConfig(): Promise<{ features: { aiPhotoEdit: boolean } }> {
   return request('/api/config');
+}
+
+export function fetchCategorias(): Promise<{ categorias: Categoria[] }> {
+  return request('/api/categorias');
 }
 
 export type AiEffect = 'remove_people' | 'superhero' | 'artistic' | 'fantasy' | 'military';

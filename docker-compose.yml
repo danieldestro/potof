@@ -8,8 +8,6 @@ services:
       MARIADB_PASSWORD: potof
       MARIADB_ROOT_PASSWORD: root
     ports:
-      # Host port 3307 (não 3306) porque este host já tem outro MariaDB
-      # rodando na 3306 (container "alpine-mariadb", de outro projeto).
       - "3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql

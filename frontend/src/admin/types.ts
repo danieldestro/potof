@@ -6,6 +6,7 @@ export interface AdminSession {
 
 export interface Provedor {
   id: number;
+  slug: string;
   nome: string;
   descricao: string | null;
   urlSite: string | null;
@@ -43,10 +44,13 @@ export interface Evento {
   provedor?: Provedor;
   idEventoProvedor: string | null;
   urlSite: string | null;
+  urlCapa: string | null;
   ativo: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export type Perfil = 'admin' | 'user';
 
 export interface Usuario {
   id: number;
@@ -57,6 +61,7 @@ export interface Usuario {
   cidade: string | null;
   uf: string | null;
   pais: string | null;
+  perfil: Perfil;
   ativo: boolean;
   createdAt: string;
   updatedAt: string;

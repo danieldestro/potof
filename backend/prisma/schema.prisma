@@ -12,6 +12,10 @@ datasource db {
 // (ex: Fotop) são fontes externas acessadas via adapter específico (fase futura).
 model Provedor {
   id          Int      @id @default(autoincrement())
+  // Chave estável usada pelo registry de adapters (backend/src/providers/registry.ts)
+  // pra resolver qual implementação usar — "nome" é texto livre editável no admin,
+  // não serve pra isso.
+  slug        String   @unique
   nome        String   @unique
   descricao   String?  @db.Text
   urlSite     String?  @map("url_site")
@@ -84,6 +88,7 @@ model Evento {
   idEventoProvedor String?  @map("id_evento_provedor")
 
   urlSite   String?  @map("url_site")
+  urlCapa   String?  @map("url_capa")
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -96,8 +101,16 @@ model Evento {
   @@map("eventos")
 }
 
-// Cliente/participante final (quem compra/favorita fotos) — não confundir com
-// AdminUsuario, que é quem acessa o backoffice.
+enum Perfil {
+  admin
+  user
+}
+
+// Tabela única para clientes/participantes e para quem acessa o backoffice
+// (perfil=admin) — sem tabela separada de admin. senhaHash só é setado pra
+// quem efetivamente faz login (hoje só perfil=admin; login de cliente é
+// trabalho futuro). Nunca é devolvido pela API — ver o `omit` global em
+// backend/src/db/prisma.ts.
 model Usuario {
   id             Int       @id @default(autoincrement())
   nome           String
@@ -107,6 +120,8 @@ model Usuario {
   cidade         String?
   uf             String?
   pais           String?   @default("BR")
+  perfil         Perfil    @default(user)
+  senhaHash      String?   @map("senha_hash")
   ativo          Boolean   @default(true)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -143,18 +158,4 @@ model Foto {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("fotos")
-}
-
-// Usuário do backoffice/admin. Separado de Usuario (cliente final) porque tem
-// credenciais de login e nenhum dos dados de participante (cpf, data de nascimento).
-model AdminUsuario {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  email     String   @unique
-  senhaHash String   @map("senha_hash")
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("admin_usuarios")
 }

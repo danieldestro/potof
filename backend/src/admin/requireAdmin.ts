@@ -15,8 +15,8 @@ declare module 'fastify' {
 }
 
 // preHandler shared by every /api/admin/* route (except login) — reads the
-// signed potof_admin_sid cookie, resolves the admin user and attaches it to
-// the request, or rejects with 401.
+// signed potof_admin_sid cookie, resolves the usuario (perfil=admin) and
+// attaches it to the request, or rejects with 401.
 export async function requireAdmin(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const raw = request.cookies[ADMIN_SESSION_COOKIE];
   if (!raw) {
@@ -24,15 +24,15 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
   }
 
   const unsigned = request.unsignCookie(raw);
-  const adminId = unsigned.valid && unsigned.value ? Number.parseInt(unsigned.value, 10) : NaN;
-  if (!Number.isFinite(adminId)) {
+  const usuarioId = unsigned.valid && unsigned.value ? Number.parseInt(unsigned.value, 10) : NaN;
+  if (!Number.isFinite(usuarioId)) {
     return reply.status(401).send({ error: 'Sessão inválida.' });
   }
 
-  const admin = await prisma.adminUsuario.findUnique({ where: { id: adminId } });
-  if (!admin || !admin.ativo) {
+  const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
+  if (!usuario || !usuario.ativo || usuario.perfil !== 'admin') {
     return reply.status(401).send({ error: 'Sessão inválida.' });
   }
 
-  request.admin = { id: admin.id, nome: admin.nome, email: admin.email };
+  request.admin = { id: usuario.id, nome: usuario.nome, email: usuario.email };
 }

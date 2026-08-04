@@ -1,6 +1,7 @@
 -- CreateTable
 CREATE TABLE `provedores` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `slug` VARCHAR(191) NOT NULL,
     `nome` VARCHAR(191) NOT NULL,
     `descricao` TEXT NULL,
     `url_site` VARCHAR(191) NULL,
@@ -9,6 +10,7 @@ CREATE TABLE `provedores` (
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `provedores_slug_key`(`slug`),
     UNIQUE INDEX `provedores_nome_key`(`nome`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -24,6 +26,20 @@ CREATE TABLE `categorias` (
     `updated_at` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `categorias_slug_key`(`slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `categorias_provedores` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `categoria_id` INTEGER NOT NULL,
+    `provedor_id` INTEGER NOT NULL,
+    `id_categoria_provedor` VARCHAR(191) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `categorias_provedores_categoria_id_provedor_id_key`(`categoria_id`, `provedor_id`),
+    UNIQUE INDEX `categorias_provedores_provedor_id_id_categoria_provedor_key`(`provedor_id`, `id_categoria_provedor`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -44,6 +60,7 @@ CREATE TABLE `eventos` (
     `provedor_id` INTEGER NOT NULL,
     `id_evento_provedor` VARCHAR(191) NULL,
     `url_site` VARCHAR(191) NULL,
+    `url_capa` VARCHAR(191) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
@@ -112,19 +129,11 @@ CREATE TABLE `admin_usuarios` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateTable
-CREATE TABLE `categorias_provedores` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `categoria_id` INTEGER NOT NULL,
-    `provedor_id` INTEGER NOT NULL,
-    `id_categoria_provedor` VARCHAR(191) NOT NULL,
-    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
+-- AddForeignKey
+ALTER TABLE `categorias_provedores` ADD CONSTRAINT `categorias_provedores_categoria_id_fkey` FOREIGN KEY (`categoria_id`) REFERENCES `categorias`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-    UNIQUE INDEX `categorias_provedores_categoria_id_provedor_id_key`(`categoria_id`, `provedor_id`),
-    UNIQUE INDEX `categorias_provedores_provedor_id_id_categoria_provedor_key`(`provedor_id`, `id_categoria_provedor`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- AddForeignKey
+ALTER TABLE `categorias_provedores` ADD CONSTRAINT `categorias_provedores_provedor_id_fkey` FOREIGN KEY (`provedor_id`) REFERENCES `provedores`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `eventos` ADD CONSTRAINT `eventos_categoria_id_fkey` FOREIGN KEY (`categoria_id`) REFERENCES `categorias`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -140,9 +149,3 @@ ALTER TABLE `fotos` ADD CONSTRAINT `fotos_evento_id_fkey` FOREIGN KEY (`evento_i
 
 -- AddForeignKey
 ALTER TABLE `fotos` ADD CONSTRAINT `fotos_fotografo_id_fkey` FOREIGN KEY (`fotografo_id`) REFERENCES `fotografos`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `categorias_provedores` ADD CONSTRAINT `categorias_provedores_categoria_id_fkey` FOREIGN KEY (`categoria_id`) REFERENCES `categorias`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `categorias_provedores` ADD CONSTRAINT `categorias_provedores_provedor_id_fkey` FOREIGN KEY (`provedor_id`) REFERENCES `provedores`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

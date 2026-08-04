@@ -57,6 +57,16 @@ function createCrudApi<T>(basePath: string): CrudApi<T> {
   };
 }
 
+export interface SyncResult {
+  created: number;
+  updated: number;
+  skipped: number;
+}
+
+export function syncProvedor(id: number): Promise<SyncResult> {
+  return request(`/api/admin/provedores/${id}/sync`, { method: 'POST' });
+}
+
 export const provedoresApi = createCrudApi<Provedor>('/api/admin/provedores');
 export const categoriasApi = createCrudApi<Categoria>('/api/admin/categorias');
 export const eventosApi = createCrudApi<Evento>('/api/admin/eventos');

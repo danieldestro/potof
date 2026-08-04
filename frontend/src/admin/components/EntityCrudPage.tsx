@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { CrudApi, ListParams } from '../api';
 import { useEntityCrud } from '../useEntityCrud';
 import { EntityTable, type EntityColumn } from './EntityTable';
@@ -12,6 +12,8 @@ interface EntityCrudPageProps<T extends { id: number; ativo: boolean }> {
   defaultCreateValues?: Record<string, unknown>;
   extraParams?: ListParams;
   toFormValues?: (item: T) => Record<string, unknown>;
+  renderRowExtra?: (item: T) => ReactNode;
+  filters?: ReactNode;
 }
 
 // Shared list+search+paginate+create/edit+toggle-ativo shell reused by every
@@ -25,6 +27,8 @@ export function EntityCrudPage<T extends { id: number; ativo: boolean }>({
   defaultCreateValues = { ativo: true },
   extraParams,
   toFormValues,
+  renderRowExtra,
+  filters,
 }: EntityCrudPageProps<T>) {
   const crud = useEntityCrud(api, extraParams);
   const [editing, setEditing] = useState<T | null>(null);
@@ -65,6 +69,8 @@ export function EntityCrudPage<T extends { id: number; ativo: boolean }>({
         onCreate={() => setCreating(true)}
         onEdit={setEditing}
         onToggleAtivo={handleToggleAtivo}
+        renderRowExtra={renderRowExtra}
+        filters={filters}
       />
       {creating && (
         <EntityForm

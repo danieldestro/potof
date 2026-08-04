@@ -3,13 +3,16 @@ import { toDateInputValue, toDateTimeInputValue } from '../formatters';
 
 export type SelectOption = { value: string | number; label: string };
 
-export type EntityFieldType = 'text' | 'email' | 'textarea' | 'boolean' | 'date' | 'datetime' | 'select';
+export type EntityFieldType = 'text' | 'email' | 'password' | 'textarea' | 'boolean' | 'date' | 'datetime' | 'select';
 
 export interface EntityField {
   key: string;
   label: string;
   type: EntityFieldType;
   required?: boolean;
+  placeholder?: string;
+  /** Only for type "select" — static list, for small fixed sets (e.g. perfil admin/user). */
+  options?: SelectOption[];
   /** Only for type "select" — loaded once when the form opens (e.g. active categorias/provedores). */
   loadOptions?: () => Promise<SelectOption[]>;
 }
@@ -83,6 +86,17 @@ function renderInput(
           required={field.required}
         />
       );
+    case 'password':
+      return (
+        <input
+          type="password"
+          value={(value as string) ?? ''}
+          onChange={(e) => setField(field.key, e.target.value)}
+          required={field.required}
+          placeholder={field.placeholder}
+          autoComplete="new-password"
+        />
+      );
     case 'text':
     default:
       return (
@@ -136,7 +150,7 @@ export function EntityForm({ title, fields, initialValues, onSubmit, onClose }: 
           {fields.map((field) => (
             <label key={field.key} className="admin-form__field">
               {field.label}
-              {renderInput(field, values[field.key], setField, selectOptions[field.key] ?? [])}
+              {renderInput(field, values[field.key], setField, selectOptions[field.key] ?? field.options ?? [])}
             </label>
           ))}
           {error && <p className="admin-form__error">{error}</p>}

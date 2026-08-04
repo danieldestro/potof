@@ -21,6 +21,10 @@ interface EntityTableProps<T extends { id: number; ativo: boolean }> {
   onCreate: () => void;
   onEdit: (item: T) => void;
   onToggleAtivo: (item: T) => void;
+  /** Extra per-row action(s) rendered after "Editar" (ex: "Sincronizar" nos Provedores). */
+  renderRowExtra?: (item: T) => ReactNode;
+  /** Filtros extras (selects) renderizados ao lado da busca (ex: Categoria/Provedor/UF nos Eventos). */
+  filters?: ReactNode;
 }
 
 export function EntityTable<T extends { id: number; ativo: boolean }>({
@@ -38,6 +42,8 @@ export function EntityTable<T extends { id: number; ativo: boolean }>({
   onCreate,
   onEdit,
   onToggleAtivo,
+  renderRowExtra,
+  filters,
 }: EntityTableProps<T>) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -50,13 +56,16 @@ export function EntityTable<T extends { id: number; ativo: boolean }>({
         </button>
       </div>
 
-      <input
-        type="search"
-        className="admin-search"
-        placeholder="Buscar…"
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-      />
+      <div className="admin-toolbar">
+        <input
+          type="search"
+          className="admin-search"
+          placeholder="Buscar…"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+        {filters && <div className="admin-filters">{filters}</div>}
+      </div>
 
       {error && <p className="admin-form__error">{error}</p>}
 
@@ -69,17 +78,18 @@ export function EntityTable<T extends { id: number; ativo: boolean }>({
               ))}
               <th>Ativo</th>
               <th>Ações</th>
+              {renderRowExtra && <th />}
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={columns.length + 2}>Carregando…</td>
+                <td colSpan={columns.length + 2 + (renderRowExtra ? 1 : 0)}>Carregando…</td>
               </tr>
             )}
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan={columns.length + 2}>Nenhum registro encontrado.</td>
+                <td colSpan={columns.length + 2 + (renderRowExtra ? 1 : 0)}>Nenhum registro encontrado.</td>
               </tr>
             )}
             {!loading &&
@@ -103,6 +113,7 @@ export function EntityTable<T extends { id: number; ativo: boolean }>({
                       Editar
                     </button>
                   </td>
+                  {renderRowExtra && <td>{renderRowExtra(item)}</td>}
                 </tr>
               ))}
           </tbody>

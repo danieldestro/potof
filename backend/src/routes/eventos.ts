@@ -1,24 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import {
-  ensureEventSession,
-  fetchEventosBusca,
-  fetchSearchResultsHtml,
-  searchEventosPorNome,
-  sendSelfie,
-  FOTOP_PHOTOS_BASE_URL,
-} from '../fotop/fotopClient';
-import {
-  parsePhotoGrid,
-  parseNoResultsMessage,
-  parseEventName,
-  parseEventLocalData,
-  type Photo,
-} from '../fotop/photoParser';
+import type { Evento, Foto, Prisma } from '@prisma/client';
+import { prisma } from '../db/prisma';
+import { getAdapter } from '../providers/registry';
+import type { Photo } from '../fotop/photoParser';
 
 const POTOF_SESSION_COOKIE = 'potof_sid';
-const MAX_PAGES = 20;
 const EVENTOS_BUSCA_PAGE_SIZE = 40;
+const AUTOCOMPLETE_LIMIT = 8;
 
 function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): string {
   const existing = request.cookies[POTOF_SESSION_COOKIE];
@@ -32,6 +21,27 @@ function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): s
     secure: process.env.NODE_ENV === 'production',
   });
   return sessionId;
+}
+
+function mapEventoToSummary(evento: Evento & { fotos: Foto[]; _count: { fotos: number } }) {
+  const primeiraFoto = evento.fotos[0];
+  const coverUrl = evento.urlCapa ?? primeiraFoto?.urlThumb ?? primeiraFoto?.urlFoto ?? null;
+
+  return {
+    id: String(evento.id),
+    name: evento.nome,
+    city: evento.cidade ?? '',
+    state: evento.uf ?? '',
+    location: evento.local ?? '',
+    date: evento.dataHora.toISOString().slice(0, 10),
+    dateEnd: null,
+    categoryId: String(evento.categoriaId),
+    // Contagem de fotos locais ativas — legitimamente 0 pra eventos de provedor
+    // externo (fotop), já que as fotos deles não são armazenadas aqui.
+    photosCount: evento._count.fotos,
+    hasEventPhoto: coverUrl != null,
+    coverUrl,
+  };
 }
 
 export async function eventosRoutes(app: FastifyInstance): Promise<void> {
@@ -49,26 +59,35 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
     const page = Math.max(1, Number.parseInt(pag ?? '1', 10) || 1);
     const log = request.log.child({ route: 'eventos-busca', page, estado, cat, dataInicio, dataFim, nomeEvento });
 
-    try {
-      const raw = await fetchEventosBusca({ page, estado, cat, dataInicio, dataFim, nomeEvento }, log);
-      const events = raw.map((e) => ({
-        id: e.id_produtos_eventos,
-        name: e.nome.trim(),
-        city: e.cidade,
-        state: e.estado,
-        location: e.local,
-        date: e.data,
-        dateEnd: e.data_fim && e.data_fim !== '0000-00-00' ? e.data_fim : null,
-        categoryId: e.id_estacoes,
-        photosCount: Number.parseInt(e.qtd_fotos, 10) || 0,
-        hasEventPhoto: e.tem_foto_evento === '1',
-        coverUrl: `${FOTOP_PHOTOS_BASE_URL}/fotos/imagens/produtos_eventos/foto_${e.id_produtos_eventos}_g.jpg`,
-      }));
+    const where: Prisma.EventoWhereInput = { ativo: true };
+    if (estado) where.uf = estado;
+    if (cat) where.categoriaId = Number.parseInt(cat, 10);
+    if (nomeEvento) where.nome = { contains: nomeEvento };
+    if (dataInicio || dataFim) {
+      where.dataHora = {
+        ...(dataInicio ? { gte: new Date(`${dataInicio}T00:00:00`) } : {}),
+        ...(dataFim ? { lte: new Date(`${dataFim}T23:59:59`) } : {}),
+      };
+    }
 
-      return reply.send({ page, events, hasMore: raw.length >= EVENTOS_BUSCA_PAGE_SIZE });
+    try {
+      const eventos = await prisma.evento.findMany({
+        where,
+        include: {
+          fotos: { where: { ativo: true }, take: 1, orderBy: { id: 'asc' } },
+          _count: { select: { fotos: { where: { ativo: true } } } },
+        },
+        orderBy: { dataHora: 'desc' },
+        skip: (page - 1) * EVENTOS_BUSCA_PAGE_SIZE,
+        take: EVENTOS_BUSCA_PAGE_SIZE,
+      });
+
+      const events = eventos.map(mapEventoToSummary);
+      log.info({ count: events.length }, 'eventos-busca finished');
+      return reply.send({ page, events, hasMore: eventos.length >= EVENTOS_BUSCA_PAGE_SIZE });
     } catch (err) {
-      log.error({ err }, 'failed to reach fotop.com.br while listing eventos');
-      return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.br.' });
+      log.error({ err }, 'failed to query local eventos');
+      return reply.status(500).send({ error: 'Falha ao buscar eventos.' });
     }
   });
 
@@ -82,57 +101,67 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
         return reply.send({ events: [] });
       }
 
+      const where: Prisma.EventoWhereInput = { ativo: true, nome: { contains: nome.trim() } };
+      if (estado) where.uf = estado;
+
       try {
-        const raw = await searchEventosPorNome({ nome: nome.trim(), estado }, log);
-        const events = raw.map((e) => ({
-          id: e.id,
-          name: e.nome.trim(),
-          date: e.data,
-          location: e.local,
-          slug: e.slug,
-          status: e.status,
+        const eventos = await prisma.evento.findMany({ where, orderBy: { dataHora: 'desc' }, take: AUTOCOMPLETE_LIMIT });
+        const events = eventos.map((e) => ({
+          id: String(e.id),
+          name: e.nome,
+          date: e.dataHora.toISOString().slice(0, 10),
+          location: [e.cidade, e.uf].filter(Boolean).join(', '),
+          slug: '',
+          status: e.ativo ? 'ativo' : 'inativo',
         }));
 
         return reply.send({ events });
       } catch (err) {
-        log.error({ err }, 'failed to reach fotop.com while searching eventos by name');
-        return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.' });
+        log.error({ err }, 'failed to query local eventos for autocomplete');
+        return reply.status(500).send({ error: 'Falha ao buscar eventos.' });
       }
     }
   );
 
   app.get<{ Params: { id: string } }>('/api/eventos/:id', async (request, reply) => {
-    const sessionId = getOrSetPotofSessionId(request, reply);
-    const { id: eventId } = request.params;
-    const log = request.log.child({ potofSessionId: sessionId, eventId, route: 'evento' });
+    const id = Number.parseInt(request.params.id, 10);
+    const log = request.log.child({ eventoId: id, route: 'evento' });
+
+    if (!Number.isFinite(id)) {
+      return reply.status(404).send({ error: 'Evento não encontrado.' });
+    }
 
     try {
-      const html = await ensureEventSession(sessionId, eventId, log);
-      const name = parseEventName(html);
-      if (!name) {
-        log.warn('parseEventName: h1.nome-evento-interna a not found on the event page');
+      const evento = await prisma.evento.findUnique({ where: { id }, include: { provedor: true } });
+      if (!evento || !evento.ativo) {
+        return reply.status(404).send({ error: 'Evento não encontrado.' });
       }
-      const { city, state, date, photosCount } = parseEventLocalData(html);
+
+      const photosCount = evento.provedor.proprio
+        ? await prisma.foto.count({ where: { eventoId: id, ativo: true } })
+        : null;
+
       return reply.send({
-        eventId,
-        name,
-        city,
-        state,
-        location: city && state ? `${city}, ${state}` : city ?? state,
-        date,
+        eventId: String(evento.id),
+        name: evento.nome,
+        city: evento.cidade,
+        state: evento.uf,
+        location: evento.cidade && evento.uf ? `${evento.cidade}, ${evento.uf}` : (evento.cidade ?? evento.uf),
+        date: evento.dataHora.toISOString().slice(0, 10),
         photosCount,
-        categoryId: null,
+        categoryId: String(evento.categoriaId),
+        proprio: evento.provedor.proprio,
       });
     } catch (err) {
-      log.error({ err }, 'failed to reach fotop.com.br while fetching event info');
-      return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.br.' });
+      log.error({ err }, 'failed to fetch local evento info');
+      return reply.status(500).send({ error: 'Falha ao buscar o evento.' });
     }
   });
 
   app.post<{ Params: { id: string } }>('/api/eventos/:id/selfie', async (request, reply) => {
     const sessionId = getOrSetPotofSessionId(request, reply);
-    const { id: eventId } = request.params;
-    const log = request.log.child({ potofSessionId: sessionId, eventId, route: 'selfie' });
+    const id = Number.parseInt(request.params.id, 10);
+    const log = request.log.child({ potofSessionId: sessionId, eventoId: id, route: 'selfie' });
 
     const data = await request.file();
     if (!data) {
@@ -142,82 +171,82 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
     const buffer = await data.toBuffer();
     log.info({ filename: data.filename, mimeType: data.mimetype, sizeBytes: buffer.length }, 'received selfie upload');
 
-    try {
-      await ensureEventSession(sessionId, eventId, log);
+    const evento = await prisma.evento.findUnique({ where: { id }, include: { provedor: true } });
+    if (!evento || !evento.ativo) {
+      return reply.status(404).send({ error: 'Evento não encontrado.' });
+    }
+    if (evento.provedor.proprio) {
+      return reply.status(400).send({ error: 'Este evento não usa busca por selfie.' });
+    }
 
-      const result = await sendSelfie(
+    const adapter = getAdapter(evento.provedor);
+    if (!adapter) {
+      log.error({ provedorSlug: evento.provedor.slug }, 'no adapter registered for this provider');
+      return reply.status(501).send({ error: 'Provedor sem suporte a busca por selfie.' });
+    }
+
+    try {
+      const result = await adapter.sendSelfie(
+        evento,
         sessionId,
-        eventId,
         { buffer, filename: data.filename, mimeType: data.mimetype },
         log
       );
 
       if (!result.success) {
-        log.warn({ raw: result.raw }, 'fotop.com.br rejected the selfie search');
+        log.warn({ raw: result.raw }, 'provider rejected the selfie search');
         return reply.status(502).send({
           success: false,
-          error: 'O fotop.com.br não conseguiu processar a selfie enviada.',
+          error: 'O provedor não conseguiu processar a selfie enviada.',
           raw: result.raw,
         });
       }
 
       return reply.send(result);
     } catch (err) {
-      log.error({ err }, 'failed to reach fotop.com.br while sending selfie');
-      return reply.status(502).send({ success: false, error: 'Falha ao comunicar com o fotop.com.br.' });
+      log.error({ err }, 'failed to reach provider while sending selfie');
+      return reply.status(502).send({ success: false, error: 'Falha ao comunicar com o provedor.' });
     }
   });
 
   app.get<{ Params: { id: string } }>('/api/eventos/:id/fotos', async (request, reply) => {
     const sessionId = getOrSetPotofSessionId(request, reply);
-    const { id: eventId } = request.params;
-    const log = request.log.child({ potofSessionId: sessionId, eventId, route: 'fotos' });
+    const id = Number.parseInt(request.params.id, 10);
+    const log = request.log.child({ potofSessionId: sessionId, eventoId: id, route: 'fotos' });
+
+    const evento = await prisma.evento.findUnique({ where: { id }, include: { provedor: true } });
+    if (!evento || !evento.ativo) {
+      return reply.status(404).send({ error: 'Evento não encontrado.' });
+    }
+
+    if (evento.provedor.proprio) {
+      const fotos = await prisma.foto.findMany({ where: { eventoId: id, ativo: true }, orderBy: { id: 'asc' } });
+      const photos: Photo[] = fotos.map((f) => ({
+        id: String(f.id),
+        productUrl: '',
+        thumbs: { p: f.urlThumb ?? f.urlFoto, m: f.urlThumb ?? f.urlFoto, g: f.urlFoto },
+      }));
+      log.info({ total: photos.length }, 'local gallery photos returned');
+      return reply.send({ eventId: String(id), total: photos.length, photos });
+    }
+
+    const adapter = getAdapter(evento.provedor);
+    if (!adapter) {
+      log.error({ provedorSlug: evento.provedor.slug }, 'no adapter registered for this provider');
+      return reply.status(501).send({ error: 'Provedor sem suporte a busca de fotos.' });
+    }
 
     try {
-      await ensureEventSession(sessionId, eventId, log);
-
-      const photos: Photo[] = [];
-      const seenIds = new Set<string>();
-      let page = 1;
-      let noResultsMessage: string | null = null;
-
-      // No pagination observed today — every /rc/{n} returns the exact same full grid — so we
-      // stop as soon as a page adds nothing new instead of blindly walking all MAX_PAGES and
-      // piling up duplicates. This still supports real pagination if fotop.com.br adds it.
-      while (page <= MAX_PAGES) {
-        const html = await fetchSearchResultsHtml(sessionId, eventId, page, log);
-        const pagePhotos = parsePhotoGrid(html, log);
-
-        if (pagePhotos.length === 0) {
-          if (page === 1) {
-            // fotop renders an explicit "no results" message in #resultado instead of any
-            // .foto-selecionar markup when the face search comes back empty — surface it so
-            // the user (and these logs) get a real reason instead of a silent empty grid.
-            noResultsMessage = parseNoResultsMessage(html);
-            if (noResultsMessage) {
-              log.info({ noResultsMessage }, 'fotop reported no matching photos');
-            }
-          }
-          break;
-        }
-
-        const newPhotos = pagePhotos.filter((p) => !seenIds.has(p.id));
-        if (newPhotos.length === 0) {
-          log.info({ page }, 'fotop: page repeats the previous page\'s photos, stopping pagination');
-          break;
-        }
-
-        for (const p of newPhotos) seenIds.add(p.id);
-        photos.push(...newPhotos);
-        page += 1;
-      }
-
-      log.info({ total: photos.length, pagesFetched: page }, 'photo search finished');
-
-      return reply.send({ eventId, total: photos.length, photos, message: noResultsMessage ?? undefined });
+      const result = await adapter.fetchPhotos(evento, sessionId, log);
+      return reply.send({
+        eventId: String(id),
+        total: result.photos.length,
+        photos: result.photos,
+        message: result.message,
+      });
     } catch (err) {
-      log.error({ err }, 'failed to reach fotop.com.br while fetching photos');
-      return reply.status(502).send({ error: 'Falha ao comunicar com o fotop.com.br.' });
+      log.error({ err }, 'failed to reach provider while fetching photos');
+      return reply.status(502).send({ error: 'Falha ao comunicar com o provedor.' });
     }
   });
 }

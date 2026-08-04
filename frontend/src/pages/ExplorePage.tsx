@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { EVENT_TYPES } from '../data/eventTypes';
 import { ESTADOS } from '../data/estados';
 import { CategoryPills } from '../components/CategoryPills';
 import { FilterSelects } from '../components/FilterSelects';
@@ -8,6 +7,7 @@ import { DateRangeFilter } from '../components/DateRangeFilter';
 import { EventSummaryCard } from '../components/EventSummaryCard';
 import { useEventosBusca, toApiFilter } from '../hooks/useEventosBusca';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { useCategorias } from '../hooks/useCategorias';
 import { getUserPreferences, setUserPreferredCategoria, setUserPreferredEstado } from '../lib/userPreferences';
 import type { DateRange } from '../lib/dateRanges';
 
@@ -15,6 +15,8 @@ const STATE_FILTER_OPTIONS = ESTADOS.map((e) => ({ id: e.id, label: e.descricao 
 
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { categorias } = useCategorias();
+  const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome }));
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('categoria') ?? 'all');
   // Same 3-tier mechanism as Home: search filter (this page's own state, seeded from the URL
   // if a link brought one along) → user_preferences in localStorage → app default.
@@ -57,11 +59,11 @@ export function ExplorePage() {
     <div className="explore-page">
       <h1>Todos os eventos</h1>
 
-      <CategoryPills categories={EVENT_TYPES} onSelect={applyCategory} size="small" />
+      <CategoryPills categories={categoryOptions} onSelect={applyCategory} size="small" />
 
       <div className="explore-page__filters">
         <FilterSelects
-          categories={EVENT_TYPES}
+          categories={categoryOptions}
           states={STATE_FILTER_OPTIONS}
           categoryFilter={categoryFilter}
           stateFilter={stateFilter}

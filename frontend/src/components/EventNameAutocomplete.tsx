@@ -59,6 +59,9 @@ export function EventNameAutocomplete({ estado }: EventNameAutocompleteProps) {
       date: event.date,
       photosCount: null,
       categoryId: null,
+      // Placeholder — EventoPage always re-fetches the authoritative value on
+      // mount and never trusts this passed-state object for that decision.
+      proprio: false,
     };
     navigate(`/evento/${event.id}`, { state: { event: headerInfo } });
   }

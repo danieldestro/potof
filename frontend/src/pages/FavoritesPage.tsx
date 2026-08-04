@@ -4,7 +4,8 @@ import { fetchEventInfo, fetchEventPhotos } from '../api/client';
 import { useFavorites } from '../hooks/useFavorites';
 import { useAppConfig } from '../hooks/useAppConfig';
 import { getMockEventMeta } from '../data/exploreCatalog';
-import { eventTypeLabel } from '../data/eventTypes';
+import { useCategorias } from '../hooks/useCategorias';
+import { getCategoriaLabel } from '../lib/categorias';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
 import { getCachedEventInfo, setCachedEventInfo } from '../lib/eventInfoCache';
 import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
@@ -22,6 +23,7 @@ export function FavoritesPage() {
   const { setEventTitle } = useOutletContext<HeaderContext>();
   const { favorites, isFavorite, toggleFavorite } = useFavorites(eventId);
   const { aiPhotoEditEnabled } = useAppConfig();
+  const { categorias } = useCategorias();
 
   const routerState = location.state as { photos?: Photo[]; event?: EventHeaderInfo } | null;
   const statePhotos = routerState?.photos ?? null;
@@ -111,7 +113,7 @@ export function FavoritesPage() {
 
   const locationLabel = headerInfo ? formatLocationLabel(headerInfo.city, headerInfo.state) : null;
   const dateLabel = headerInfo ? formatDateLabel(headerInfo.date) : null;
-  const categoryLabel = headerInfo?.categoryId ? eventTypeLabel(headerInfo.categoryId) : null;
+  const categoryLabel = headerInfo?.categoryId ? getCategoriaLabel(categorias, headerInfo.categoryId) : null;
 
   function handleRemove(photoId: string) {
     toggleFavorite(photoId);

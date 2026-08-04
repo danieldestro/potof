@@ -91,15 +91,38 @@
   margin: 0;
 }
 
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .admin-search {
   width: 100%;
   max-width: 360px;
   padding: 10px 12px;
   border-radius: var(--potof-radius-sm);
   border: 1px solid var(--potof-border);
-  margin-bottom: 16px;
   font-family: inherit;
   font-size: 0.95rem;
+}
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-filters select {
+  padding: 9px 10px;
+  border-radius: var(--potof-radius-sm);
+  border: 1px solid var(--potof-border);
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--potof-text);
+  background: #fff;
 }
 
 .admin-table-wrap {
