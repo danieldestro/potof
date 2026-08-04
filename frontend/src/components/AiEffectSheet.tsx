@@ -5,6 +5,7 @@ import type { Photo } from '../types';
 const EFFECT_OPTIONS: Array<{ value: AiEffect; label: string; icon: string }> = [
   { value: 'remove_people', label: 'Remover pessoas', icon: '🧍‍♂️🚫' },
   { value: 'superhero', label: 'Super-herói', icon: '🦸' },
+  { value: 'military', label: 'Militar', icon: '🎖️' },
   { value: 'artistic', label: 'Efeito visual', icon: '✨' },
   { value: 'fantasy', label: 'Fantasia', icon: '🧚' },
 ];
