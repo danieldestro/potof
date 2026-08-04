@@ -1,0 +1,86 @@
+export interface AdminSession {
+  id: number;
+  nome: string;
+  email: string;
+}
+
+export interface Provedor {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  urlSite: string | null;
+  ativo: boolean;
+  proprio: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Categoria {
+  id: number;
+  slug: string;
+  nome: string;
+  descricao: string | null;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Evento {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  local: string | null;
+  dataHora: string;
+  cidade: string | null;
+  uf: string | null;
+  pais: string | null;
+  categoriaId: number;
+  categoria?: Categoria;
+  searchSelfie: boolean;
+  searchBib: boolean;
+  searchName: boolean;
+  provedorId: number;
+  provedor?: Provedor;
+  idEventoProvedor: string | null;
+  urlSite: string | null;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Usuario {
+  id: number;
+  nome: string;
+  email: string;
+  cpf: string | null;
+  dataNascimento: string | null;
+  cidade: string | null;
+  uf: string | null;
+  pais: string | null;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Fotografo {
+  id: number;
+  usuarioId: number;
+  usuario?: Usuario;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Foto {
+  id: number;
+  eventoId: number;
+  evento?: Evento;
+  fotografoId: number;
+  fotografo?: Fotografo;
+  urlFoto: string;
+  urlThumb: string | null;
+  takenAt: string | null;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Provedor de fotos/eventos. "proprio=true" identifica o(s) provedor(es) cujos
+// eventos/fotos são armazenados e servidos localmente (BD próprio); os demais
+// (ex: Fotop) são fontes externas acessadas via adapter específico (fase futura).
+model Provedor {
+  id          Int      @id @default(autoincrement())
+  nome        String   @unique
+  descricao   String?  @db.Text
+  urlSite     String?  @map("url_site")
+  ativo       Boolean  @default(true)
+  proprio     Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  eventos              Evento[]
+  categoriasProvedores CategoriaProvedor[]
+
+  @@map("provedores")
+}
+
+model Categoria {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  nome      String
+  descricao String?  @db.Text
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  eventos              Evento[]
+  categoriasProvedores CategoriaProvedor[]
+
+  @@map("categorias")
+}
+
+// Mapeia a categoria própria para o id que cada provedor externo usa pra
+// classificar o mesmo tipo de evento (ex: fotop's id_estacoes) — necessário
+// pro futuro sync/adapter de eventos saber a que Categoria local um evento
+// importado de um provedor pertence.
+model CategoriaProvedor {
+  id                  Int       @id @default(autoincrement())
+  categoriaId         Int       @map("categoria_id")
+  categoria           Categoria @relation(fields: [categoriaId], references: [id])
+  provedorId          Int       @map("provedor_id")
+  provedor            Provedor  @relation(fields: [provedorId], references: [id])
+  idCategoriaProvedor String    @map("id_categoria_provedor")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Uma categoria tem no máximo um mapeamento por provedor, e um id de
+  // categoria de um provedor não pode apontar pra mais de uma categoria local.
+  @@unique([categoriaId, provedorId])
+  @@unique([provedorId, idCategoriaProvedor])
+  @@map("categorias_provedores")
+}
+
+model Evento {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  descricao   String?  @db.Text
+  local       String?
+  dataHora    DateTime @map("data_hora")
+  cidade      String?
+  uf          String?
+  pais        String?  @default("BR")
+
+  categoriaId Int       @map("categoria_id")
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+
+  searchSelfie Boolean @default(false) @map("search_selfie")
+  searchBib    Boolean @default(false) @map("search_bib")
+  searchName   Boolean @default(false) @map("search_name")
+
+  provedorId       Int      @map("provedor_id")
+  provedor         Provedor @relation(fields: [provedorId], references: [id])
+  idEventoProvedor String?  @map("id_evento_provedor")
+
+  urlSite   String?  @map("url_site")
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  fotos Foto[]
+
+  // Evita duplicar o mesmo evento de um provedor externo se ele for
+  // resincronizado; não se aplica a eventos próprios (idEventoProvedor nulo).
+  @@unique([provedorId, idEventoProvedor])
+  @@map("eventos")
+}
+
+// Cliente/participante final (quem compra/favorita fotos) — não confundir com
+// AdminUsuario, que é quem acessa o backoffice.
+model Usuario {
+  id             Int       @id @default(autoincrement())
+  nome           String
+  email          String    @unique
+  cpf            String?   @unique
+  dataNascimento DateTime? @map("data_nascimento") @db.Date
+  cidade         String?
+  uf             String?
+  pais           String?   @default("BR")
+  ativo          Boolean   @default(true)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  fotografo Fotografo?
+
+  @@map("usuarios")
+}
+
+model Fotografo {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @unique @map("usuario_id")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  fotos Foto[]
+
+  @@map("fotografos")
+}
+
+model Foto {
+  id          Int       @id @default(autoincrement())
+  eventoId    Int       @map("evento_id")
+  evento      Evento    @relation(fields: [eventoId], references: [id])
+  fotografoId Int       @map("fotografo_id")
+  fotografo   Fotografo @relation(fields: [fotografoId], references: [id])
+  urlFoto     String    @map("url_foto")
+  urlThumb    String?   @map("url_thumb")
+  takenAt     DateTime? @map("taken_at")
+  ativo       Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("fotos")
+}
+
+// Usuário do backoffice/admin. Separado de Usuario (cliente final) porque tem
+// credenciais de login e nenhum dos dados de participante (cpf, data de nascimento).
+model AdminUsuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senhaHash String   @map("senha_hash")
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_usuarios")
+}

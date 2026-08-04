@@ -7,7 +7,8 @@ X ?=
 AI_DEBUG_FLAG := $(if $(X),-X,)
 
 .PHONY: help install build build-backend build-frontend \
-	dev dev-backend dev-frontend start clean clean-all
+	dev dev-backend dev-frontend start clean clean-all \
+	db-up db-down db-migrate db-seed db-studio
 
 help: ## Show this help
 	@echo "Available targets:"
@@ -22,6 +23,11 @@ help: ## Show this help
 	@echo "  start           Run backend from its production build (runs 'build-back' first)"
 	@echo "  clean           Remove build artifacts (backend/dist, frontend/dist)"
 	@echo "  clean-all       clean + remove all node_modules"
+	@echo "  db-up           Start local MariaDB (docker compose)"
+	@echo "  db-down         Stop local MariaDB"
+	@echo "  db-migrate      Run Prisma migrations (dev) against local MariaDB"
+	@echo "  db-seed         Seed the database (admin user, provedores, categorias)"
+	@echo "  db-studio       Open Prisma Studio"
 
 install: ## Install dependencies for both workspaces
 	$(NPM) install
@@ -61,3 +67,18 @@ clean: ## Remove build artifacts
 
 clean-all: clean ## Remove build artifacts and all node_modules
 	rm -rf node_modules backend/node_modules frontend/node_modules
+
+db-up: ## Start local MariaDB (docker compose)
+	docker compose up -d mariadb
+
+db-down: ## Stop local MariaDB
+	docker compose stop mariadb
+
+db-migrate: ## Run Prisma migrations (dev) against local MariaDB
+	$(NPM) run prisma:migrate --workspace backend
+
+db-seed: ## Seed the database (admin user, provedores, categorias)
+	$(NPM) run prisma:seed --workspace backend
+
+db-studio: ## Open Prisma Studio
+	$(NPM) run prisma:studio --workspace backend

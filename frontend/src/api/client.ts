@@ -1,6 +1,6 @@
 import type { EventHeaderInfo, EventNameSuggestion, EventSummary, Photo } from '../types';
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     credentials: 'include',
     ...options,

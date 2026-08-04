@@ -1,0 +1,23 @@
+services:
+  mariadb:
+    image: mariadb:10
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: potof
+      MARIADB_USER: potof
+      MARIADB_PASSWORD: potof
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      # Host port 3307 (não 3306) porque este host já tem outro MariaDB
+      # rodando na 3306 (container "alpine-mariadb", de outro projeto).
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mariadb_data:

@@ -8,6 +8,7 @@ import fastifyStatic from '@fastify/static';
 import { eventosRoutes } from './routes/eventos';
 import { configRoutes } from './routes/config';
 import { aiEffectsRoutes } from './routes/aiEffects';
+import { adminRoutes } from './routes/admin';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
@@ -20,7 +21,9 @@ async function main(): Promise<void> {
     origin: FRONTEND_ORIGIN,
     credentials: true,
   });
-  await app.register(cookie);
+  // secret enables signed cookies for the admin session (potof_admin_sid);
+  // the public potof_sid cookie stays unsigned, same as before.
+  await app.register(cookie, { secret: process.env.ADMIN_SESSION_SECRET });
   await app.register(multipart, {
     limits: { fileSize: 10 * 1024 * 1024 },
   });
@@ -28,6 +31,7 @@ async function main(): Promise<void> {
   await app.register(eventosRoutes);
   await app.register(configRoutes);
   await app.register(aiEffectsRoutes);
+  await app.register(adminRoutes);
 
   app.get('/api/health', async () => ({ status: 'ok' }));
 

@@ -1,0 +1,300 @@
+/* Admin backoffice — desktop-oriented, deliberately separate from the mobile-first
+   public site (AppLayout/Header). Reuses the same design tokens for consistency. */
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--potof-bg);
+  font-family: var(--potof-font-body);
+  color: var(--potof-text);
+}
+
+.admin-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid var(--potof-border);
+  padding: 24px 16px;
+}
+
+.admin-sidebar__brand {
+  font-family: var(--potof-font-display);
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+}
+
+.admin-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.admin-sidebar__link {
+  padding: 10px 12px;
+  border-radius: var(--potof-radius-sm);
+  color: var(--potof-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.admin-sidebar__link:hover {
+  background: var(--potof-yellow-tint);
+}
+
+.admin-sidebar__link--active {
+  background: var(--potof-yellow-tint-strong);
+  color: var(--potof-text);
+}
+
+.admin-sidebar__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--potof-border);
+}
+
+.admin-sidebar__user {
+  font-size: 0.85rem;
+  color: var(--potof-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 32px;
+  overflow-x: auto;
+}
+
+.admin-loading {
+  padding: 32px;
+  color: var(--potof-muted);
+}
+
+.admin-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.admin-page__header h1 {
+  font-family: var(--potof-font-display);
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.admin-search {
+  width: 100%;
+  max-width: 360px;
+  padding: 10px 12px;
+  border-radius: var(--potof-radius-sm);
+  border: 1px solid var(--potof-border);
+  margin-bottom: 16px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--potof-border);
+  border-radius: var(--potof-radius-md);
+  background: #fff;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--potof-border);
+  white-space: nowrap;
+}
+
+.admin-table th {
+  background: var(--potof-bg);
+  font-weight: 700;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--potof-radius-sm);
+  display: block;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--potof-muted);
+}
+
+.admin-btn {
+  padding: 8px 16px;
+  border-radius: var(--potof-radius-sm);
+  border: 1px solid var(--potof-border);
+  background: #fff;
+  color: var(--potof-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-btn--primary {
+  background: var(--potof-yellow);
+  border-color: var(--potof-yellow);
+  color: var(--potof-text);
+}
+
+.admin-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.admin-badge {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-badge--on {
+  background: #e3f4e3;
+  color: #276b27;
+}
+
+.admin-badge--off {
+  background: var(--potof-danger-bg);
+  color: var(--potof-danger);
+}
+
+.admin-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(21, 16, 9, 0.4);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.admin-modal__card {
+  background: #fff;
+  border-radius: var(--potof-radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.admin-modal__card h2 {
+  font-family: var(--potof-font-display);
+  font-size: 1.15rem;
+  margin: 0 0 16px;
+}
+
+.admin-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--potof-primary);
+}
+
+.admin-form__field input[type='text'],
+.admin-form__field input[type='email'],
+.admin-form__field input[type='date'],
+.admin-form__field input[type='datetime-local'],
+.admin-form__field input[type='password'],
+.admin-form__field textarea,
+.admin-form__field select {
+  padding: 9px 10px;
+  border-radius: var(--potof-radius-sm);
+  border: 1px solid var(--potof-border);
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--potof-text);
+}
+
+.admin-form__field input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  align-self: flex-start;
+}
+
+.admin-form__error {
+  color: var(--potof-danger);
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+
+.admin-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--potof-bg);
+}
+
+.admin-login__card {
+  background: #fff;
+  border-radius: var(--potof-radius-lg);
+  padding: 32px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 8px 24px rgba(36, 27, 22, 0.08);
+}
+
+.admin-login__card h1 {
+  font-family: var(--potof-font-display);
+  font-size: 1.3rem;
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.admin-login__error {
+  color: var(--potof-danger);
+  font-size: 0.85rem;
+  margin: 4px 0 12px;
+}
+
+.admin-login__card button {
+  width: 100%;
+}
