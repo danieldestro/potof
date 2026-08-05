@@ -2,6 +2,12 @@ services:
   mariadb:
     image: mariadb:10
     restart: unless-stopped
+    # innodb-ft-min-token-size=2 (padrão é 3): nomes reais de evento têm tokens
+    # de 2 caracteres com significado ("5k", "8k", UFs) que o índice FULLTEXT
+    # (ver migration eventos_fulltext) precisa indexar. Em produção, o mesmo
+    # parâmetro precisa ser configurado na instância gerenciada de MariaDB/MySQL
+    # — senão o comportamento diverge silenciosamente entre dev e prod.
+    command: --innodb-ft-min-token-size=2
     environment:
       MARIADB_DATABASE: potof
       MARIADB_USER: potof

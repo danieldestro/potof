@@ -1,13 +1,25 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { Evento, Foto, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { Evento, Foto } from '@prisma/client';
 import { prisma } from '../db/prisma';
 import { getAdapter } from '../providers/registry';
+import { buildBooleanExpression } from '../lib/fulltextQuery';
 import type { Photo } from '../fotop/photoParser';
 
 const POTOF_SESSION_COOKIE = 'potof_sid';
 const EVENTOS_BUSCA_PAGE_SIZE = 40;
 const AUTOCOMPLETE_LIMIT = 8;
+
+// Índice FULLTEXT eventos_busca_fulltext (nome, local, cidade, uf, descricao) —
+// ver prisma/migrations/*_eventos_fulltext. Reaproveitado tanto pela listagem
+// (com relevância) quanto pelo autocomplete.
+const FULLTEXT_MATCH = Prisma.sql`MATCH(nome, local, cidade, uf, descricao)`;
+
+const EVENTO_SUMMARY_INCLUDE = {
+  fotos: { where: { ativo: true }, take: 1, orderBy: { id: 'asc' as const } },
+  _count: { select: { fotos: { where: { ativo: true } } } },
+} satisfies Prisma.EventoInclude;
 
 function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): string {
   const existing = request.cookies[POTOF_SESSION_COOKIE];
@@ -59,31 +71,59 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
     const page = Math.max(1, Number.parseInt(pag ?? '1', 10) || 1);
     const log = request.log.child({ route: 'eventos-busca', page, estado, cat, dataInicio, dataFim, nomeEvento });
 
-    const where: Prisma.EventoWhereInput = { ativo: true };
-    if (estado) where.uf = estado;
-    if (cat) where.categoriaId = Number.parseInt(cat, 10);
-    if (nomeEvento) where.nome = { contains: nomeEvento };
-    if (dataInicio || dataFim) {
-      where.dataHora = {
-        ...(dataInicio ? { gte: new Date(`${dataInicio}T00:00:00`) } : {}),
-        ...(dataFim ? { lte: new Date(`${dataFim}T23:59:59`) } : {}),
-      };
-    }
+    const booleanExpr = nomeEvento ? buildBooleanExpression(nomeEvento) : null;
 
     try {
-      const eventos = await prisma.evento.findMany({
-        where,
-        include: {
-          fotos: { where: { ativo: true }, take: 1, orderBy: { id: 'asc' } },
-          _count: { select: { fotos: { where: { ativo: true } } } },
-        },
-        orderBy: { dataHora: 'desc' },
-        skip: (page - 1) * EVENTOS_BUSCA_PAGE_SIZE,
-        take: EVENTOS_BUSCA_PAGE_SIZE,
-      });
+      let eventos: Array<Evento & { fotos: Foto[]; _count: { fotos: number } }>;
+
+      if (booleanExpr) {
+        // Com busca por nome: passo 1 pega só os ids, já filtrados/paginados/
+        // ordenados por relevância via SQL raw (Prisma não expõe boolean mode
+        // nem ORDER BY relevância pela API de query normal).
+        const conditions: Prisma.Sql[] = [Prisma.sql`ativo = 1`];
+        if (estado) conditions.push(Prisma.sql`uf = ${estado}`);
+        if (cat) conditions.push(Prisma.sql`categoria_id = ${Number.parseInt(cat, 10)}`);
+        if (dataInicio) conditions.push(Prisma.sql`data_hora >= ${new Date(`${dataInicio}T00:00:00`)}`);
+        if (dataFim) conditions.push(Prisma.sql`data_hora <= ${new Date(`${dataFim}T23:59:59`)}`);
+        conditions.push(Prisma.sql`${FULLTEXT_MATCH} AGAINST(${booleanExpr} IN BOOLEAN MODE)`);
+
+        const rows = await prisma.$queryRaw<{ id: number }[]>(Prisma.sql`
+          SELECT id FROM eventos
+          WHERE ${Prisma.join(conditions, ' AND ')}
+          ORDER BY ${FULLTEXT_MATCH} AGAINST(${booleanExpr} IN BOOLEAN MODE) DESC
+          LIMIT ${EVENTOS_BUSCA_PAGE_SIZE} OFFSET ${(page - 1) * EVENTOS_BUSCA_PAGE_SIZE}
+        `);
+        const ids = rows.map((r) => r.id);
+
+        // Passo 2: reaproveita o include/mapeamento de sempre pra montar o
+        // payload completo (capa, contagem de fotos) — sem duplicar essa
+        // lógica em SQL raw. `id: { in: ids }` não preserva ordem, então
+        // reordena em JS pra bater com a relevância do passo 1.
+        const found = await prisma.evento.findMany({ where: { id: { in: ids } }, include: EVENTO_SUMMARY_INCLUDE });
+        const byId = new Map(found.map((e) => [e.id, e]));
+        eventos = ids.map((id) => byId.get(id)).filter((e): e is (typeof found)[number] => e != null);
+      } else {
+        const where: Prisma.EventoWhereInput = { ativo: true };
+        if (estado) where.uf = estado;
+        if (cat) where.categoriaId = Number.parseInt(cat, 10);
+        if (dataInicio || dataFim) {
+          where.dataHora = {
+            ...(dataInicio ? { gte: new Date(`${dataInicio}T00:00:00`) } : {}),
+            ...(dataFim ? { lte: new Date(`${dataFim}T23:59:59`) } : {}),
+          };
+        }
+
+        eventos = await prisma.evento.findMany({
+          where,
+          include: EVENTO_SUMMARY_INCLUDE,
+          orderBy: { dataHora: 'desc' },
+          skip: (page - 1) * EVENTOS_BUSCA_PAGE_SIZE,
+          take: EVENTOS_BUSCA_PAGE_SIZE,
+        });
+      }
 
       const events = eventos.map(mapEventoToSummary);
-      log.info({ count: events.length }, 'eventos-busca finished');
+      log.info({ count: events.length, fulltext: booleanExpr != null }, 'eventos-busca finished');
       return reply.send({ page, events, hasMore: eventos.length >= EVENTOS_BUSCA_PAGE_SIZE });
     } catch (err) {
       log.error({ err }, 'failed to query local eventos');
@@ -97,19 +137,31 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
       const { nome, estado } = request.query;
       const log = request.log.child({ route: 'eventos-autocomplete', nome, estado });
 
-      if (!nome || !nome.trim()) {
+      const booleanExpr = nome ? buildBooleanExpression(nome) : null;
+      if (!booleanExpr) {
         return reply.send({ events: [] });
       }
 
-      const where: Prisma.EventoWhereInput = { ativo: true, nome: { contains: nome.trim() } };
-      if (estado) where.uf = estado;
+      const conditions: Prisma.Sql[] = [
+        Prisma.sql`ativo = 1`,
+        Prisma.sql`${FULLTEXT_MATCH} AGAINST(${booleanExpr} IN BOOLEAN MODE)`,
+      ];
+      if (estado) conditions.push(Prisma.sql`uf = ${estado}`);
 
       try {
-        const eventos = await prisma.evento.findMany({ where, orderBy: { dataHora: 'desc' }, take: AUTOCOMPLETE_LIMIT });
-        const events = eventos.map((e) => ({
+        const rows = await prisma.$queryRaw<
+          Array<{ id: number; nome: string; data_hora: Date; cidade: string | null; uf: string | null; ativo: boolean }>
+        >(Prisma.sql`
+          SELECT id, nome, data_hora, cidade, uf, ativo FROM eventos
+          WHERE ${Prisma.join(conditions, ' AND ')}
+          ORDER BY ${FULLTEXT_MATCH} AGAINST(${booleanExpr} IN BOOLEAN MODE) DESC
+          LIMIT ${AUTOCOMPLETE_LIMIT}
+        `);
+
+        const events = rows.map((e) => ({
           id: String(e.id),
           name: e.nome,
-          date: e.dataHora.toISOString().slice(0, 10),
+          date: e.data_hora.toISOString().slice(0, 10),
           location: [e.cidade, e.uf].filter(Boolean).join(', '),
           slug: '',
           status: e.ativo ? 'ativo' : 'inativo',

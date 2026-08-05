@@ -1,3 +1,13 @@
+-- Schema completo do potof, consolidado num único arquivo DDL (era
+-- fragmentado em várias migrations incrementais durante o
+-- desenvolvimento: init, merge admin_usuarios->usuarios,
+-- provedor.ultima_sincronizacao, eventos_fulltext).
+--
+-- Gerado via: prisma migrate diff --from-empty --to-schema-datamodel
+-- prisma/schema.prisma --script (mais o índice FULLTEXT abaixo, que
+-- não é modelado no schema.prisma — ver comentário em
+-- backend/src/routes/eventos.ts).
+
 -- CreateTable
 CREATE TABLE `provedores` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
@@ -7,6 +17,8 @@ CREATE TABLE `provedores` (
     `url_site` VARCHAR(191) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `proprio` BOOLEAN NOT NULL DEFAULT false,
+    `ultima_sincronizacao_em` DATETIME(3) NULL,
+    `ultima_sincronizacao_resultado` TEXT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -79,6 +91,8 @@ CREATE TABLE `usuarios` (
     `cidade` VARCHAR(191) NULL,
     `uf` VARCHAR(191) NULL,
     `pais` VARCHAR(191) NULL DEFAULT 'BR',
+    `perfil` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+    `senha_hash` VARCHAR(191) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
@@ -115,20 +129,6 @@ CREATE TABLE `fotos` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateTable
-CREATE TABLE `admin_usuarios` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
-    `senha_hash` VARCHAR(191) NOT NULL,
-    `ativo` BOOLEAN NOT NULL DEFAULT true,
-    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
-
-    UNIQUE INDEX `admin_usuarios_email_key`(`email`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
 -- AddForeignKey
 ALTER TABLE `categorias_provedores` ADD CONSTRAINT `categorias_provedores_categoria_id_fkey` FOREIGN KEY (`categoria_id`) REFERENCES `categorias`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -149,3 +149,11 @@ ALTER TABLE `fotos` ADD CONSTRAINT `fotos_evento_id_fkey` FOREIGN KEY (`evento_i
 
 -- AddForeignKey
 ALTER TABLE `fotos` ADD CONSTRAINT `fotos_fotografo_id_fkey` FOREIGN KEY (`fotografo_id`) REFERENCES `fotografos`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+-- Índice FULLTEXT pros principais dados cadastrais do evento — usado
+-- pela busca por nome da Home e de /eventos
+-- (backend/src/routes/eventos.ts), via MATCH(...) AGAINST(...).
+-- Requer innodb_ft_min_token_size=2 (ver docker-compose.yml).
+ALTER TABLE eventos
+  ADD FULLTEXT INDEX eventos_busca_fulltext (nome, local, cidade, uf, descricao);
