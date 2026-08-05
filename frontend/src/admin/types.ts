@@ -12,6 +12,8 @@ export interface Provedor {
   urlSite: string | null;
   ativo: boolean;
   proprio: boolean;
+  ultimaSincronizacaoEm: string | null;
+  ultimaSincronizacaoResultado: string | null;
   createdAt: string;
   updatedAt: string;
 }

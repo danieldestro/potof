@@ -4,7 +4,7 @@ import { prisma } from '../../db/prisma';
 import { registerCrudRoutes } from '../../admin/crud';
 import { requireAdmin } from '../../admin/requireAdmin';
 import { optionalText, optionalUrl } from '../../admin/zodHelpers';
-import { getAdapter } from '../../providers/registry';
+import { ProviderSyncUnsupportedError, runProviderSync } from '../../providers/syncRunner';
 
 const createSchema = z.object({
   slug: z.string().trim().min(1),
@@ -26,8 +26,9 @@ export async function adminProvedoresRoutes(app: FastifyInstance): Promise<void>
     searchFields: ['nome', 'slug', 'descricao'],
   });
 
-  // Sincronização de catálogo sob demanda (sem cron por enquanto) — só
-  // provedores externos com adapter.syncEventos suportam isso.
+  // Sincronização de catálogo sob demanda — o mesmo sync também roda sozinho
+  // periodicamente (ver providers/scheduler.ts); os dois caminhos passam por
+  // runProviderSync, que grava o resultado em ultimaSincronizacaoEm/Resultado.
   app.post<{ Params: { id: string } }>(
     '/api/admin/provedores/:id/sync',
     { preHandler: requireAdmin },
@@ -38,15 +39,13 @@ export async function adminProvedoresRoutes(app: FastifyInstance): Promise<void>
         return reply.status(404).send({ error: 'Provedor não encontrado.' });
       }
 
-      const adapter = getAdapter(provedor);
-      if (!adapter?.syncEventos) {
-        return reply.status(400).send({ error: 'Este provedor não suporta sincronização de eventos.' });
-      }
-
       try {
-        const result = await adapter.syncEventos(provedor, request.log);
+        const result = await runProviderSync(provedor, request.log);
         return reply.send(result);
       } catch (err) {
+        if (err instanceof ProviderSyncUnsupportedError) {
+          return reply.status(400).send({ error: err.message });
+        }
         request.log.error({ err }, 'falha ao sincronizar eventos do provedor');
         return reply.status(502).send({ error: 'Falha ao sincronizar eventos do provedor.' });
       }

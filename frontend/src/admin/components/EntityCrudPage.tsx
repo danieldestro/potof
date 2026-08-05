@@ -12,7 +12,7 @@ interface EntityCrudPageProps<T extends { id: number; ativo: boolean }> {
   defaultCreateValues?: Record<string, unknown>;
   extraParams?: ListParams;
   toFormValues?: (item: T) => Record<string, unknown>;
-  renderRowExtra?: (item: T) => ReactNode;
+  renderRowExtra?: (item: T, reload: () => void) => ReactNode;
   filters?: ReactNode;
 }
 
@@ -69,7 +69,7 @@ export function EntityCrudPage<T extends { id: number; ativo: boolean }>({
         onCreate={() => setCreating(true)}
         onEdit={setEditing}
         onToggleAtivo={handleToggleAtivo}
-        renderRowExtra={renderRowExtra}
+        renderRowExtra={renderRowExtra ? (item) => renderRowExtra(item, crud.reload) : undefined}
         filters={filters}
       />
       {creating && (

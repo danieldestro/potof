@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CATEGORIA_SEED_DATA } from './categoriaSeedData';
+import { FOCO_RADICAL_NOVAS_CATEGORIAS, FOCO_RADICAL_CATEGORIA_MAP } from './focoRadicalSeedData';
 
 const prisma = new PrismaClient();
 
@@ -24,7 +25,7 @@ async function seedAdmin(): Promise<void> {
   console.log(`Admin criado: ${email}`);
 }
 
-async function seedProvedores(): Promise<{ potofId: number; fotopId: number }> {
+async function seedProvedores(): Promise<{ potofId: number; fotopId: number; focoRadicalId: number }> {
   const potof = await prisma.provedor.upsert({
     where: { slug: 'potof' },
     update: {},
@@ -41,8 +42,13 @@ async function seedProvedores(): Promise<{ potofId: number; fotopId: number }> {
       proprio: false,
     },
   });
-  console.log('Provedores seed: Potof, Fotop');
-  return { potofId: potof.id, fotopId: fotop.id };
+  const focoRadical = await prisma.provedor.upsert({
+    where: { slug: 'foco-radical' },
+    update: {},
+    create: { slug: 'foco-radical', nome: 'Foco Radical', proprio: false },
+  });
+  console.log('Provedores seed: Potof, Fotop, Foco Radical');
+  return { potofId: potof.id, fotopId: fotop.id, focoRadicalId: focoRadical.id };
 }
 
 // Os ids em CATEGORIA_SEED_DATA são os códigos numéricos do fotop
@@ -74,11 +80,42 @@ async function seedCategoriasProvedores(fotopId: number): Promise<void> {
   console.log(`Mapeamentos categoria-provedor (Fotop) seed: ${CATEGORIA_SEED_DATA.length}`);
 }
 
+// Categorias novas trazidas pelo catálogo do Foco Radical — ver comentário em
+// focoRadicalSeedData.ts sobre por que elas não seguem o truque de id
+// identidade usado pro Fotop.
+async function seedFocoRadicalCategorias(): Promise<void> {
+  for (const item of FOCO_RADICAL_NOVAS_CATEGORIAS) {
+    await prisma.categoria.upsert({
+      where: { id: item.id },
+      update: { slug: item.slug, nome: item.nome },
+      create: { id: item.id, slug: item.slug, nome: item.nome },
+    });
+  }
+  console.log(`Categorias seed (Foco Radical): ${FOCO_RADICAL_NOVAS_CATEGORIAS.length}`);
+}
+
+async function seedCategoriasProvedoresFocoRadical(focoRadicalId: number): Promise<void> {
+  for (const item of FOCO_RADICAL_CATEGORIA_MAP) {
+    await prisma.categoriaProvedor.upsert({
+      where: { categoriaId_provedorId: { categoriaId: item.categoriaId, provedorId: focoRadicalId } },
+      update: { idCategoriaProvedor: item.idCategoriaProvedor },
+      create: {
+        categoriaId: item.categoriaId,
+        provedorId: focoRadicalId,
+        idCategoriaProvedor: item.idCategoriaProvedor,
+      },
+    });
+  }
+  console.log(`Mapeamentos categoria-provedor (Foco Radical) seed: ${FOCO_RADICAL_CATEGORIA_MAP.length}`);
+}
+
 async function main(): Promise<void> {
   await seedAdmin();
-  const { fotopId } = await seedProvedores();
+  const { fotopId, focoRadicalId } = await seedProvedores();
   await seedCategorias();
   await seedCategoriasProvedores(fotopId);
+  await seedFocoRadicalCategorias();
+  await seedCategoriasProvedoresFocoRadical(focoRadicalId);
 }
 
 main()

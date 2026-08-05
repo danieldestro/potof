@@ -3,6 +3,7 @@ import { provedoresApi, syncProvedor } from '../api';
 import { EntityCrudPage } from '../components/EntityCrudPage';
 import type { EntityColumn } from '../components/EntityTable';
 import type { EntityField } from '../components/EntityForm';
+import { formatDateTimeBR } from '../formatters';
 import type { Provedor } from '../types';
 
 const COLUMNS: EntityColumn<Provedor>[] = [
@@ -11,6 +12,20 @@ const COLUMNS: EntityColumn<Provedor>[] = [
   { key: 'descricao', label: 'Descrição', render: (p) => p.descricao ?? '—' },
   { key: 'urlSite', label: 'URL', render: (p) => p.urlSite ?? '—' },
   { key: 'proprio', label: 'Próprio', render: (p) => (p.proprio ? 'Sim' : 'Não') },
+  {
+    key: 'ultimaSincronizacao',
+    label: 'Última sincronização',
+    render: (p) => {
+      if (!p.ultimaSincronizacaoEm) return '—';
+      const isError = p.ultimaSincronizacaoResultado?.startsWith('Erro');
+      return (
+        <span title={p.ultimaSincronizacaoResultado ?? ''}>
+          {isError ? '⚠️ ' : ''}
+          {formatDateTimeBR(p.ultimaSincronizacaoEm)}
+        </span>
+      );
+    },
+  },
 ];
 
 const FIELDS: EntityField[] = [
@@ -22,7 +37,7 @@ const FIELDS: EntityField[] = [
   { key: 'ativo', label: 'Ativo', type: 'boolean' },
 ];
 
-function SincronizarButton({ provedor }: { provedor: Provedor }) {
+function SincronizarButton({ provedor, reload }: { provedor: Provedor; reload: () => void }) {
   const [syncing, setSyncing] = useState(false);
 
   async function handleClick() {
@@ -34,6 +49,7 @@ function SincronizarButton({ provedor }: { provedor: Provedor }) {
       alert(err instanceof Error ? err.message : 'Falha ao sincronizar.');
     } finally {
       setSyncing(false);
+      reload();
     }
   }
 
@@ -52,7 +68,7 @@ export function ProvedoresPage() {
       columns={COLUMNS}
       fields={FIELDS}
       defaultCreateValues={{ ativo: true, proprio: false }}
-      renderRowExtra={(provedor) => <SincronizarButton provedor={provedor} />}
+      renderRowExtra={(provedor, reload) => <SincronizarButton provedor={provedor} reload={reload} />}
     />
   );
 }

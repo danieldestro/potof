@@ -21,6 +21,12 @@ model Provedor {
   urlSite     String?  @map("url_site")
   ativo       Boolean  @default(true)
   proprio     Boolean  @default(false)
+
+  // Preenchidos pelo sync (manual ou automático — ver backend/src/providers/scheduler.ts)
+  // sempre que ele roda pra este provedor, com sucesso ou falha.
+  ultimaSincronizacaoEm        DateTime? @map("ultima_sincronizacao_em")
+  ultimaSincronizacaoResultado String?   @map("ultima_sincronizacao_resultado") @db.Text
+
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

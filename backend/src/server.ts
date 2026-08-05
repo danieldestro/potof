@@ -10,6 +10,7 @@ import { categoriasRoutes } from './routes/categorias';
 import { configRoutes } from './routes/config';
 import { aiEffectsRoutes } from './routes/aiEffects';
 import { adminRoutes } from './routes/admin';
+import { startSyncScheduler } from './providers/scheduler';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
@@ -50,6 +51,8 @@ async function main(): Promise<void> {
       return reply.sendFile('index.html');
     });
   }
+
+  startSyncScheduler(app.log);
 
   await app.listen({ port: PORT, host: '0.0.0.0' });
 }
