@@ -8,7 +8,7 @@ AI_DEBUG_FLAG := $(if $(X),-X,)
 
 .PHONY: help install build build-backend build-frontend \
 	dev dev-backend dev-frontend start clean clean-all \
-	db-up db-down db-migrate db-seed db-studio
+	db-up db-down db-clean db-migrate db-seed db-studio
 
 help: ## Show this help
 	@echo "Available targets:"
@@ -25,6 +25,7 @@ help: ## Show this help
 	@echo "  clean-all       clean + remove all node_modules"
 	@echo "  db-up           Start local MariaDB (docker compose)"
 	@echo "  db-down         Stop local MariaDB"
+	@echo "  db-clean        Reset the local database from scratch (all data lost)"
 	@echo "  db-migrate      Run Prisma migrations (dev) against local MariaDB"
 	@echo "  db-seed         Seed the database (admin user, provedores, categorias)"
 	@echo "  db-studio       Open Prisma Studio"
@@ -73,6 +74,9 @@ db-up: ## Start local MariaDB (docker compose)
 
 db-down: ## Stop local MariaDB
 	docker compose stop mariadb
+
+db-clean: db-up ## Reset the local database: drops it, recreates it, and reapplies all migrations (all data lost)
+	$(NPM) run prisma:reset --workspace backend
 
 db-migrate: ## Run Prisma migrations (dev) against local MariaDB
 	$(NPM) run prisma:migrate --workspace backend

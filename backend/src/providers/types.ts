@@ -23,7 +23,8 @@ export interface SyncResult {
 // Um provedor "próprio" (Provedor.proprio=true) não é um adapter — as rotas
 // tratam esse caso direto via Prisma (galeria local de Foto), sem passar por
 // aqui. Isso existe só para provedores externos com busca/scraping próprios
-// (hoje só o Fotop).
+// (hoje Fotop e Foco Radical — este último só com syncEventos implementado
+// até agora, sendSelfie/fetchPhotos ainda lançam "não suportado").
 export interface ProviderAdapter {
   slug: string;
   sendSelfie(

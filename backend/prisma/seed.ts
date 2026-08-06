@@ -71,10 +71,11 @@ async function seedCategorias(): Promise<void> {
 // numeração diferente vai depender de verdade.
 async function seedCategoriasProvedores(fotopId: number): Promise<void> {
   for (const item of CATEGORIA_SEED_DATA) {
+    const idCategoriaProvedor = String(item.id);
     await prisma.categoriaProvedor.upsert({
-      where: { categoriaId_provedorId: { categoriaId: item.id, provedorId: fotopId } },
-      update: { idCategoriaProvedor: String(item.id) },
-      create: { categoriaId: item.id, provedorId: fotopId, idCategoriaProvedor: String(item.id) },
+      where: { provedorId_idCategoriaProvedor: { provedorId: fotopId, idCategoriaProvedor } },
+      update: { categoriaId: item.id },
+      create: { categoriaId: item.id, provedorId: fotopId, idCategoriaProvedor },
     });
   }
   console.log(`Mapeamentos categoria-provedor (Fotop) seed: ${CATEGORIA_SEED_DATA.length}`);
@@ -97,8 +98,10 @@ async function seedFocoRadicalCategorias(): Promise<void> {
 async function seedCategoriasProvedoresFocoRadical(focoRadicalId: number): Promise<void> {
   for (const item of FOCO_RADICAL_CATEGORIA_MAP) {
     await prisma.categoriaProvedor.upsert({
-      where: { categoriaId_provedorId: { categoriaId: item.categoriaId, provedorId: focoRadicalId } },
-      update: { idCategoriaProvedor: item.idCategoriaProvedor },
+      where: {
+        provedorId_idCategoriaProvedor: { provedorId: focoRadicalId, idCategoriaProvedor: item.idCategoriaProvedor },
+      },
+      update: { categoriaId: item.categoriaId },
       create: {
         categoriaId: item.categoriaId,
         provedorId: focoRadicalId,

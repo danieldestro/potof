@@ -1,7 +1,8 @@
 -- Schema completo do potof, consolidado num único arquivo DDL (era
 -- fragmentado em várias migrations incrementais durante o
 -- desenvolvimento: init, merge admin_usuarios->usuarios,
--- provedor.ultima_sincronizacao, eventos_fulltext).
+-- provedor.ultima_sincronizacao, eventos_fulltext, eventos.url_capa
+-- mais largo, categorias_provedores sem unique em categoria_id+provedor_id).
 --
 -- Gerado via: prisma migrate diff --from-empty --to-schema-datamodel
 -- prisma/schema.prisma --script (mais o índice FULLTEXT abaixo, que
@@ -50,7 +51,6 @@ CREATE TABLE `categorias_provedores` (
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `categorias_provedores_categoria_id_provedor_id_key`(`categoria_id`, `provedor_id`),
     UNIQUE INDEX `categorias_provedores_provedor_id_id_categoria_provedor_key`(`provedor_id`, `id_categoria_provedor`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -72,7 +72,7 @@ CREATE TABLE `eventos` (
     `provedor_id` INTEGER NOT NULL,
     `id_evento_provedor` VARCHAR(191) NULL,
     `url_site` VARCHAR(191) NULL,
-    `url_capa` VARCHAR(191) NULL,
+    `url_capa` VARCHAR(500) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,

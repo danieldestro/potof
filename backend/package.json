@@ -8,6 +8,7 @@
     "start": "prisma migrate deploy && node --env-file-if-exists=.env dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:reset": "prisma migrate reset --force --skip-seed",
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio"
   },

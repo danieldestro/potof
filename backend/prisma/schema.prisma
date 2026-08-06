@@ -65,9 +65,11 @@ model CategoriaProvedor {
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  // Uma categoria tem no máximo um mapeamento por provedor, e um id de
-  // categoria de um provedor não pode apontar pra mais de uma categoria local.
-  @@unique([categoriaId, provedorId])
+  // Sem unicidade em (categoria_id, provedor_id): uma mesma categoria local pode ter N ids
+  // diferentes mapeados pro mesmo provedor (sinônimos do catálogo do provedor — ex: Foco Radical
+  // tem "Beach Tennis" com os ids 76/173/40 todos apontando pra mesma Categoria local). O que não
+  // pode é um id de categoria de um provedor apontar pra mais de uma categoria local — daí a
+  // unicidade ficar só em (provedor_id, id_categoria_provedor).
   @@unique([provedorId, idCategoriaProvedor])
   @@map("categorias_provedores")
 }
@@ -94,7 +96,9 @@ model Evento {
   idEventoProvedor String?  @map("id_evento_provedor")
 
   urlSite   String?  @map("url_site")
-  urlCapa   String?  @map("url_capa")
+  // VARCHAR(191) (o padrão do Prisma) estourou com URLs de capa do Foco Radical baseadas no
+  // nome original do arquivo enviado pelo organizador do evento — não tem tamanho previsível.
+  urlCapa   String?  @db.VarChar(500) @map("url_capa")
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
