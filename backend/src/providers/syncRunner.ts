@@ -2,7 +2,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Provedor } from '@prisma/client';
 import { prisma } from '../db/prisma';
 import { getAdapter } from './registry';
-import type { SyncResult } from './types';
+import type { SyncOptions, SyncResult } from './types';
 
 export class ProviderSyncUnsupportedError extends Error {}
 
@@ -11,19 +11,24 @@ export class ProviderSyncUnsupportedError extends Error {}
 // do provedor e sempre grava o resultado (sucesso ou erro) em
 // ultimaSincronizacaoEm/Resultado, pra dar visibilidade no admin sem depender
 // só de log de servidor.
-export async function runProviderSync(provedor: Provedor, log: FastifyBaseLogger): Promise<SyncResult> {
+export async function runProviderSync(
+  provedor: Provedor,
+  log: FastifyBaseLogger,
+  options: SyncOptions
+): Promise<SyncResult> {
   const adapter = getAdapter(provedor);
   if (!adapter?.syncEventos) {
     throw new ProviderSyncUnsupportedError(`Provedor "${provedor.nome}" não suporta sincronização de eventos.`);
   }
 
+  const modo = options.full ? 'completo' : 'incremental';
   try {
-    const result = await adapter.syncEventos(provedor, log);
+    const result = await adapter.syncEventos(provedor, log, options);
     await prisma.provedor.update({
       where: { id: provedor.id },
       data: {
         ultimaSincronizacaoEm: new Date(),
-        ultimaSincronizacaoResultado: `OK: ${result.created} criados, ${result.updated} atualizados, ${result.skipped} pulados.`,
+        ultimaSincronizacaoResultado: `OK (${modo}): ${result.created} criados, ${result.updated} atualizados, ${result.skipped} pulados.`,
       },
     });
     return result;
@@ -33,7 +38,7 @@ export async function runProviderSync(provedor: Provedor, log: FastifyBaseLogger
       where: { id: provedor.id },
       data: {
         ultimaSincronizacaoEm: new Date(),
-        ultimaSincronizacaoResultado: `Erro: ${message}`,
+        ultimaSincronizacaoResultado: `Erro (${modo}): ${message}`,
       },
     });
     throw err;

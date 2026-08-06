@@ -1,5 +1,5 @@
 import { request } from '../api/client';
-import type { AdminSession, Categoria, Evento, Foto, Fotografo, Provedor, Usuario } from './types';
+import type { AdminSession, Categoria, Configuracoes, Evento, Foto, Fotografo, Provedor, Usuario } from './types';
 
 export function adminLogin(email: string, senha: string): Promise<AdminSession> {
   return request('/api/admin/login', {
@@ -63,8 +63,24 @@ export interface SyncResult {
   skipped: number;
 }
 
-export function syncProvedor(id: number): Promise<SyncResult> {
-  return request(`/api/admin/provedores/${id}/sync`, { method: 'POST' });
+export function syncProvedor(id: number, full: boolean): Promise<SyncResult> {
+  return request(`/api/admin/provedores/${id}/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ full }),
+  });
+}
+
+export function getConfiguracoes(): Promise<Configuracoes> {
+  return request('/api/admin/configuracoes');
+}
+
+export function updateConfiguracoes(data: Configuracoes): Promise<Configuracoes> {
+  return request('/api/admin/configuracoes', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 export const provedoresApi = createCrudApi<Provedor>('/api/admin/provedores');

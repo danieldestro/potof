@@ -17,6 +17,8 @@ const createSchema = z.object({
 
 const updateSchema = createSchema.partial();
 
+const syncBodySchema = z.object({ full: z.boolean().optional() });
+
 export async function adminProvedoresRoutes(app: FastifyInstance): Promise<void> {
   registerCrudRoutes(app, {
     path: '/api/admin/provedores',
@@ -29,7 +31,7 @@ export async function adminProvedoresRoutes(app: FastifyInstance): Promise<void>
   // Sincronização de catálogo sob demanda — o mesmo sync também roda sozinho
   // periodicamente (ver providers/scheduler.ts); os dois caminhos passam por
   // runProviderSync, que grava o resultado em ultimaSincronizacaoEm/Resultado.
-  app.post<{ Params: { id: string } }>(
+  app.post<{ Params: { id: string }; Body: unknown }>(
     '/api/admin/provedores/:id/sync',
     { preHandler: requireAdmin },
     async (request, reply) => {
@@ -39,8 +41,15 @@ export async function adminProvedoresRoutes(app: FastifyInstance): Promise<void>
         return reply.status(404).send({ error: 'Provedor não encontrado.' });
       }
 
+      // Sem `full` no body: incremental, o modo "seguro por padrão" pra clique repetido no
+      // botão. Sync completo é sempre uma escolha explícita do admin (ver ProvedoresPage.tsx).
+      const parsedBody = syncBodySchema.safeParse(request.body ?? {});
+      if (!parsedBody.success) {
+        return reply.status(400).send({ error: 'Parâmetro "full" inválido.' });
+      }
+
       try {
-        const result = await runProviderSync(provedor, request.log);
+        const result = await runProviderSync(provedor, request.log, { full: parsedBody.data.full ?? false });
         return reply.send(result);
       } catch (err) {
         if (err instanceof ProviderSyncUnsupportedError) {

@@ -199,6 +199,11 @@
   border-color: transparent;
 }
 
+.admin-row-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
 .admin-badge {
   border: none;
   border-radius: 999px;
@@ -258,6 +263,7 @@
 .admin-form__field input[type='email'],
 .admin-form__field input[type='date'],
 .admin-form__field input[type='datetime-local'],
+.admin-form__field input[type='number'],
 .admin-form__field input[type='password'],
 .admin-form__field textarea,
 .admin-form__field select {
@@ -286,6 +292,15 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 20px;
+}
+
+.admin-settings-form {
+  max-width: 420px;
+}
+
+.admin-settings-form__hint {
+  font-size: 0.85rem;
+  color: var(--potof-muted);
 }
 
 .admin-login {

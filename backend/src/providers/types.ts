@@ -20,6 +20,15 @@ export interface SyncResult {
   skipped: number;
 }
 
+export interface SyncOptions {
+  /**
+   * true: sweep the provider's whole catalog (first sync ever, or an explicit admin request).
+   * false: sweep only the recent window (Configuracao.syncIncrementalDias) — cheap enough to run
+   * on every scheduled tick without hammering the provider or tripping its rate limits.
+   */
+  full: boolean;
+}
+
 // Um provedor "próprio" (Provedor.proprio=true) não é um adapter — as rotas
 // tratam esse caso direto via Prisma (galeria local de Foto), sem passar por
 // aqui. Isso existe só para provedores externos com busca/scraping próprios
@@ -35,5 +44,5 @@ export interface ProviderAdapter {
   ): Promise<SelfieResult>;
   fetchPhotos(evento: EventoComProvedor, sessionId: string, log: FastifyBaseLogger): Promise<FotosResult>;
   /** Opcional: nem todo provedor externo precisa suportar importar seu catálogo de eventos. */
-  syncEventos?(provedor: Provedor, log: FastifyBaseLogger): Promise<SyncResult>;
+  syncEventos?(provedor: Provedor, log: FastifyBaseLogger, options: SyncOptions): Promise<SyncResult>;
 }

@@ -9,7 +9,7 @@ import {
   FOTOP_PHOTOS_BASE_URL,
 } from '../fotop/fotopClient';
 import { parseNoResultsMessage, parsePhotoGrid, type Photo } from '../fotop/photoParser';
-import type { EventoComProvedor, FotosResult, ProviderAdapter, SelfieResult, SyncResult } from './types';
+import type { EventoComProvedor, FotosResult, ProviderAdapter, SelfieResult, SyncOptions, SyncResult } from './types';
 
 const MAX_PHOTO_PAGES = 20;
 const MAX_SYNC_PAGES = 50;
@@ -81,7 +81,13 @@ async function fetchPhotos(
 // categoria local de cada evento via categorias_provedores; eventos cuja
 // categoria não tem mapeamento são pulados (com log) em vez de travar o sync
 // inteiro.
-async function syncEventos(provedor: Provedor, log: FastifyBaseLogger): Promise<SyncResult> {
+//
+// `options.full` é ignorado de propósito: testado manualmente (curl direto na API) que
+// dataInicio/dataFim de busca-eventos não filtram nada no servidor — resultado idêntico com e
+// sem o parâmetro. O catálogo "status=ativo" já é pequeno e de janela curta por natureza (só
+// eventos correntes ficam ativos), então full e incremental fazem exatamente o mesmo fetch aqui;
+// não faz sentido fingir uma janela client-side que exigiria buscar tudo de qualquer forma.
+async function syncEventos(provedor: Provedor, log: FastifyBaseLogger, _options: SyncOptions): Promise<SyncResult> {
   let created = 0;
   let updated = 0;
   let skipped = 0;

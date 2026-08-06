@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Configurações da aplicação editáveis via admin e persistidas no banco — ao contrário das
+// feature flags de backend/src/config.ts (env vars fixas no deploy). Singleton (id sempre 1):
+// não existe caso de uso hoje pra múltiplas linhas de configuração. Se a linha não existir ainda
+// (banco novo, sem seed), o código lê como default em vez de falhar — ver providers/syncSettings.ts.
+model Configuracao {
+  id                  Int      @id @default(1)
+  // Janela (em dias) usada pelo sync incremental de eventos dos provedores externos — ver
+  // providers/syncRunner.ts e providers/focoRadicalAdapter.ts.
+  syncIncrementalDias Int      @default(30) @map("sync_incremental_dias")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("configuracoes")
+}
+
 // Provedor de fotos/eventos. "proprio=true" identifica o(s) provedor(es) cujos
 // eventos/fotos são armazenados e servidos localmente (BD próprio); os demais
 // (ex: Fotop) são fontes externas acessadas via adapter específico (fase futura).
@@ -108,6 +122,10 @@ model Evento {
   // Evita duplicar o mesmo evento de um provedor externo se ele for
   // resincronizado; não se aplica a eventos próprios (idEventoProvedor nulo).
   @@unique([provedorId, idEventoProvedor])
+  // Modelado aqui (em vez de só existir "à mão" na migration.sql) pra `prisma migrate dev` parar
+  // de propor DROP INDEX nesse índice toda vez que rodar — ele não fazia parte do datamodel antes,
+  // então todo diff futuro achava que era drift e tentava removê-lo (já aconteceu 2x nesta sessão).
+  @@fulltext([nome, local, cidade, uf, descricao], map: "eventos_busca_fulltext")
   @@map("eventos")
 }
 

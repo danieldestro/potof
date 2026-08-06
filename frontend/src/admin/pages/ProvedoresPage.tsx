@@ -38,25 +38,42 @@ const FIELDS: EntityField[] = [
 ];
 
 function SincronizarButton({ provedor, reload }: { provedor: Provedor; reload: () => void }) {
-  const [syncing, setSyncing] = useState(false);
+  const [syncing, setSyncing] = useState<'full' | 'incremental' | null>(null);
 
-  async function handleClick() {
-    setSyncing(true);
+  async function handleClick(full: boolean) {
+    setSyncing(full ? 'full' : 'incremental');
     try {
-      const result = await syncProvedor(provedor.id);
+      const result = await syncProvedor(provedor.id, full);
       alert(`Sincronizado: ${result.created} criados, ${result.updated} atualizados, ${result.skipped} pulados.`);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Falha ao sincronizar.');
     } finally {
-      setSyncing(false);
+      setSyncing(null);
       reload();
     }
   }
 
   return (
-    <button type="button" className="admin-btn admin-btn--ghost" onClick={handleClick} disabled={syncing}>
-      {syncing ? 'Sincronizando…' : 'Sincronizar'}
-    </button>
+    <span className="admin-row-actions">
+      <button
+        type="button"
+        className="admin-btn admin-btn--ghost"
+        onClick={() => handleClick(false)}
+        disabled={syncing !== null}
+        title={`Sincroniza só os eventos mais recentes (últimos N dias — ver Configurações)`}
+      >
+        {syncing === 'incremental' ? 'Sincronizando…' : 'Sincronizar'}
+      </button>
+      <button
+        type="button"
+        className="admin-btn admin-btn--ghost"
+        onClick={() => handleClick(true)}
+        disabled={syncing !== null}
+        title="Sincroniza o catálogo inteiro do provedor (mais lento)"
+      >
+        {syncing === 'full' ? 'Sincronizando…' : 'Sincronizar completo'}
+      </button>
+    </span>
   );
 }
 

@@ -26,10 +26,14 @@ async function runAllProviders(log: FastifyBaseLogger): Promise<void> {
       const adapter = getAdapter(provedor);
       if (!adapter?.syncEventos) continue;
 
+      // Primeiro sync do provedor (nunca rodou) precisa ser completo pra trazer o catálogo
+      // inteiro; a partir daí o agendador automático sempre roda incremental — sync completo
+      // sob demanda fica a cargo do botão "Sincronizar completo" no admin.
+      const full = provedor.ultimaSincronizacaoEm === null;
       try {
-        const result = await runProviderSync(provedor, log);
+        const result = await runProviderSync(provedor, log, { full });
         log.info(
-          { provedorSlug: provedor.slug, ...result },
+          { provedorSlug: provedor.slug, full, ...result },
           'sync scheduler: sincronização automática concluída'
         );
       } catch (err) {

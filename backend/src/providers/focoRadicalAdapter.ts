@@ -2,7 +2,8 @@ import type { Provedor } from '@prisma/client';
 import type { FastifyBaseLogger } from 'fastify';
 import { prisma } from '../db/prisma';
 import { fetchCompetitions, FOCO_RADICAL_BASE_URL, type FocoRadicalCompetitionRaw } from '../focoRadical/focoRadicalClient';
-import type { EventoComProvedor, FotosResult, ProviderAdapter, SelfieResult, SyncResult } from './types';
+import { getSyncIncrementalDias } from './syncSettings';
+import type { EventoComProvedor, FotosResult, ProviderAdapter, SelfieResult, SyncOptions, SyncResult } from './types';
 
 // Busca por selfie/fotos ainda não foi implementada pra este provedor (só o catálogo de
 // eventos, via syncEventos, foi mapeado até agora). As rotas em routes/eventos.ts tratam
@@ -46,6 +47,15 @@ function lastMonthRanges(monthsBack: number, now: Date): { dataDe: string; dataA
     ranges.push({ dataDe: formatDate(first), dataAte: formatDate(last) });
   }
   return ranges;
+}
+
+// Janela única dos últimos `dias` dias até hoje — usada no sync incremental. Cobre praticamente
+// toda a mudança real (evento novo, foto de capa adicionada/trocada, correção de detalhe) porque
+// competições ficam "paradas" pouco tempo depois de acontecer; eventos mais antigos que isso só
+// são revisitados num sync completo.
+function recentDayRange(dias: number, now: Date): { dataDe: string; dataAte: string } {
+  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dias));
+  return { dataDe: formatDate(from), dataAte: formatDate(now) };
 }
 
 async function upsertCompetition(
@@ -101,39 +111,70 @@ async function upsertCompetition(
   return 'created';
 }
 
+interface RangeTotals {
+  created: number;
+  updated: number;
+  skipped: number;
+}
+
+// Varre um único intervalo de datas, paginando até acabar ou até MAX_PAGES_PER_MONTH — usado
+// tanto pelo sweep mês-a-mês do sync completo quanto pela janela única do sync incremental.
+async function syncDateRange(
+  dataDe: string,
+  dataAte: string,
+  provedor: Provedor,
+  log: FastifyBaseLogger
+): Promise<RangeTotals> {
+  const totals: RangeTotals = { created: 0, updated: 0, skipped: 0 };
+  let page = 1;
+  let pageCount = 1;
+
+  do {
+    const { items, _meta } = await fetchCompetitions({ dataDe, dataAte, page }, log);
+    pageCount = _meta.pageCount || 1;
+
+    for (const item of items) {
+      const outcome = await upsertCompetition(item, provedor, log);
+      if (outcome === 'created') totals.created += 1;
+      else if (outcome === 'updated') totals.updated += 1;
+      else totals.skipped += 1;
+    }
+
+    page += 1;
+    if (page <= pageCount && page <= MAX_PAGES_PER_MONTH) await sleep(REQUEST_PACING_MS);
+  } while (page <= pageCount && page <= MAX_PAGES_PER_MONTH);
+
+  log.info({ dataDe, dataAte, ...totals }, 'sync foco radical: intervalo concluído');
+  return totals;
+}
+
 // Importa/atualiza o catálogo de eventos do Foco Radical no BD local, sob demanda (disparado
-// pelo admin) ou periodicamente (scheduler.ts). Varre os últimos MONTHS_BACK meses — este
-// provedor é uma galeria de fotos pós-evento, então o que importa é o histórico recente, não
-// eventos futuros.
-async function syncEventos(provedor: Provedor, log: FastifyBaseLogger): Promise<SyncResult> {
-  let created = 0;
-  let updated = 0;
-  let skipped = 0;
+// pelo admin) ou periodicamente (scheduler.ts).
+//
+// - full=true: varre os últimos MONTHS_BACK meses — usado no primeiro sync do provedor e sob
+//   pedido explícito do admin ("Sincronizar completo"). Cobre o histórico inteiro que a Home
+//   ainda expõe, mas é caro (dezenas de requests, ~1 request/600ms pra não levar 429 do
+//   Cloudflare — ver focoRadicalClient.fetchCompetitions).
+// - full=false: varre só os últimos N dias (Configuracao.syncIncrementalDias — ver
+//   syncSettings.ts). Suficiente pro que muda de verdade dia a dia (evento novo, foto de capa),
+//   e barato o bastante pra rodar em todo ciclo do scheduler sem repetir o custo do sweep
+//   completo.
+async function syncEventos(provedor: Provedor, log: FastifyBaseLogger, options: SyncOptions): Promise<SyncResult> {
+  const now = new Date();
+  const ranges = options.full
+    ? lastMonthRanges(MONTHS_BACK, now)
+    : [recentDayRange(await getSyncIncrementalDias(), now)];
 
-  for (const { dataDe, dataAte } of lastMonthRanges(MONTHS_BACK, new Date())) {
-    let page = 1;
-    let pageCount = 1;
-
-    do {
-      const { items, _meta } = await fetchCompetitions({ dataDe, dataAte, page }, log);
-      pageCount = _meta.pageCount || 1;
-
-      for (const item of items) {
-        const outcome = await upsertCompetition(item, provedor, log);
-        if (outcome === 'created') created += 1;
-        else if (outcome === 'updated') updated += 1;
-        else skipped += 1;
-      }
-
-      page += 1;
-      if (page <= pageCount && page <= MAX_PAGES_PER_MONTH) await sleep(REQUEST_PACING_MS);
-    } while (page <= pageCount && page <= MAX_PAGES_PER_MONTH);
-
-    log.info({ dataDe, dataAte, created, updated, skipped }, 'sync foco radical: mês concluído');
+  const result: SyncResult = { created: 0, updated: 0, skipped: 0 };
+  for (const { dataDe, dataAte } of ranges) {
+    const totals = await syncDateRange(dataDe, dataAte, provedor, log);
+    result.created += totals.created;
+    result.updated += totals.updated;
+    result.skipped += totals.skipped;
   }
 
-  log.info({ created, updated, skipped }, 'sync foco radical finished');
-  return { created, updated, skipped };
+  log.info({ full: options.full, ...result }, 'sync foco radical finished');
+  return result;
 }
 
 export const focoRadicalAdapter: ProviderAdapter = {

@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/admin/usuarios', label: 'Usuários' },
   { to: '/admin/fotografos', label: 'Fotógrafos' },
   { to: '/admin/fotos', label: 'Fotos' },
+  { to: '/admin/configuracoes', label: 'Configurações' },
 ];
 
 export function AdminLayout() {

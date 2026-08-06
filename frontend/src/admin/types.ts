@@ -4,6 +4,10 @@ export interface AdminSession {
   email: string;
 }
 
+export interface Configuracoes {
+  syncIncrementalDias: number;
+}
+
 export interface Provedor {
   id: number;
   slug: string;

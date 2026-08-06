@@ -2,12 +2,22 @@
 -- fragmentado em várias migrations incrementais durante o
 -- desenvolvimento: init, merge admin_usuarios->usuarios,
 -- provedor.ultima_sincronizacao, eventos_fulltext, eventos.url_capa
--- mais largo, categorias_provedores sem unique em categoria_id+provedor_id).
+-- mais largo, categorias_provedores sem unique em categoria_id+provedor_id,
+-- tabela configuracoes).
 --
 -- Gerado via: prisma migrate diff --from-empty --to-schema-datamodel
--- prisma/schema.prisma --script (mais o índice FULLTEXT abaixo, que
--- não é modelado no schema.prisma — ver comentário em
+-- prisma/schema.prisma --script (mais o índice FULLTEXT abaixo, hoje também
+-- modelado via @@fulltext em Evento — ver comentário em
 -- backend/src/routes/eventos.ts).
+
+-- CreateTable
+CREATE TABLE `configuracoes` (
+    `id` INTEGER NOT NULL DEFAULT 1,
+    `sync_incremental_dias` INTEGER NOT NULL DEFAULT 30,
+    `updated_at` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `provedores` (
