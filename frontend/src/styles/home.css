@@ -401,7 +401,8 @@
     gap: 2px;
   }
 
-  .event-grid--compact .potof-badge {
+  .event-grid--compact .potof-badge,
+  .event-grid--compact .provider-badge {
     font-size: 9.5px;
     padding: 3px 8px;
   }
@@ -412,6 +413,13 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.event-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .event-card__name {

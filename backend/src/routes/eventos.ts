@@ -19,6 +19,7 @@ const FULLTEXT_MATCH = Prisma.sql`MATCH(nome, local, cidade, uf, descricao)`;
 const EVENTO_SUMMARY_INCLUDE = {
   fotos: { where: { ativo: true }, take: 1, orderBy: { id: 'asc' as const } },
   _count: { select: { fotos: { where: { ativo: true } } } },
+  provedor: { select: { slug: true } },
 } satisfies Prisma.EventoInclude;
 
 function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): string {
@@ -35,7 +36,9 @@ function getOrSetPotofSessionId(request: FastifyRequest, reply: FastifyReply): s
   return sessionId;
 }
 
-function mapEventoToSummary(evento: Evento & { fotos: Foto[]; _count: { fotos: number } }) {
+function mapEventoToSummary(
+  evento: Evento & { fotos: Foto[]; _count: { fotos: number }; provedor: { slug: string } }
+) {
   const primeiraFoto = evento.fotos[0];
   const coverUrl = evento.urlCapa ?? primeiraFoto?.urlThumb ?? primeiraFoto?.urlFoto ?? null;
 
@@ -53,6 +56,7 @@ function mapEventoToSummary(evento: Evento & { fotos: Foto[]; _count: { fotos: n
     photosCount: evento._count.fotos,
     hasEventPhoto: coverUrl != null,
     coverUrl,
+    providerSlug: evento.provedor.slug,
   };
 }
 
@@ -74,7 +78,7 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
     const booleanExpr = nomeEvento ? buildBooleanExpression(nomeEvento) : null;
 
     try {
-      let eventos: Array<Evento & { fotos: Foto[]; _count: { fotos: number } }>;
+      let eventos: Array<Evento & { fotos: Foto[]; _count: { fotos: number }; provedor: { slug: string } }>;
 
       if (booleanExpr) {
         // Com busca por nome: passo 1 pega só os ids, já filtrados/paginados/
@@ -203,6 +207,7 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
         photosCount,
         categoryId: String(evento.categoriaId),
         proprio: evento.provedor.proprio,
+        providerSlug: evento.provedor.slug,
       });
     } catch (err) {
       log.error({ err }, 'failed to fetch local evento info');

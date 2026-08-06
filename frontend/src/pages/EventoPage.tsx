@@ -10,6 +10,7 @@ import { setLastEventId } from '../lib/lastEvent';
 import { getCachedSearch, setCachedSearch } from '../lib/photoSearchCache';
 import { getCachedEventInfo, setCachedEventInfo } from '../lib/eventInfoCache';
 import { formatDateLabel, formatLocationLabel, formatPhotosCount } from '../lib/eventDisplay';
+import { ProviderBadge } from '../components/ProviderBadge';
 import { SelfieUpload } from '../components/SelfieUpload';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoViewer } from '../components/PhotoViewer';
@@ -165,7 +166,12 @@ export function EventoPage() {
     <div className={`evento-page${status === 'results' ? ' evento-page--with-footer' : ''}`}>
       {headerInfo?.name && (
         <div className="evento-hero potof-card">
-          {categoryLabel && <span className="potof-badge">{categoryLabel}</span>}
+          {(categoryLabel || headerInfo.providerSlug) && (
+            <div className="evento-hero__badges">
+              {categoryLabel && <span className="potof-badge">{categoryLabel}</span>}
+              {headerInfo.providerSlug && <ProviderBadge slug={headerInfo.providerSlug} />}
+            </div>
+          )}
           <h1 className="evento-hero__title">{headerInfo.name}</h1>
           {(locationLabel || dateLabel || headerInfo.photosCount != null) && (
             <div className="evento-hero__meta">

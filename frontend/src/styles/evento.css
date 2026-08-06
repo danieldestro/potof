@@ -19,6 +19,13 @@
   gap: 6px;
 }
 
+.evento-hero__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .evento-hero__title {
   margin: 0;
   font-family: var(--potof-font-display);

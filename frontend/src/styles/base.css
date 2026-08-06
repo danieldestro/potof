@@ -105,3 +105,16 @@ button {
   border-radius: 999px;
   background: var(--potof-yellow-tint-strong);
 }
+
+.provider-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  color: var(--potof-muted);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--potof-border);
+}

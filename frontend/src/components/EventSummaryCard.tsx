@@ -3,6 +3,7 @@ import type { EventSummary } from '../types';
 import { useCategorias } from '../hooks/useCategorias';
 import { getCategoriaLabel } from '../lib/categorias';
 import { formatDateLabel } from '../lib/eventDisplay';
+import { ProviderBadge } from './ProviderBadge';
 import { CalendarIcon, PinIcon } from './icons';
 
 interface EventSummaryCardProps {
@@ -32,7 +33,10 @@ export function EventSummaryCard({ event }: EventSummaryCardProps) {
         )}
       </div>
       <div className="event-card__body">
-        <span className="potof-badge">{getCategoriaLabel(categorias, event.categoryId)}</span>
+        <div className="event-card__badges">
+          <span className="potof-badge">{getCategoriaLabel(categorias, event.categoryId)}</span>
+          <ProviderBadge slug={event.providerSlug} />
+        </div>
         <h3 className="event-card__name">{event.name}</h3>
         <div className="event-card__meta">
           <span>

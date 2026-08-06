@@ -20,6 +20,7 @@ export interface EventSummary {
   photosCount: number;
   hasEventPhoto: boolean;
   coverUrl: string | null;
+  providerSlug: string;
 }
 
 // Data shown in the event page's header card. A full EventSummary (from the
@@ -36,6 +37,7 @@ export interface EventHeaderInfo {
   categoryId: string | null;
   /** true = provedor próprio (galeria local, sem busca por selfie). */
   proprio: boolean;
+  providerSlug: string | null;
 }
 
 export interface EventNameSuggestion {
