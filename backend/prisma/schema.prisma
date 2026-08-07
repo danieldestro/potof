@@ -61,6 +61,11 @@ model Categoria {
   // catálogo do Foco Radical não têm glifo nessa fonte, então usam este ícone próprio (SVGs
   // baixados do catálogo público de filtros do focoradical.com.br) como alternativa.
   icone     String?
+  // Posição de exibição no carrossel de categorias (CategoryPills) — menor primeiro, com nome
+  // como desempate. Um punhado de categorias populares tem posição fixa (ver PINNED_CATEGORIA_IDS
+  // em seed.ts); as demais seguem em ordem alfabética a partir daí. Não afeta o <select> de
+  // filtro (FilterSelects), que sempre lista em ordem alfabética independente deste campo.
+  ordem     Int      @default(0)
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

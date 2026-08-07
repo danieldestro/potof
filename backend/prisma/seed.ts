@@ -5,6 +5,27 @@ import { FOCO_RADICAL_NOVAS_CATEGORIAS, FOCO_RADICAL_CATEGORIA_MAP } from './foc
 
 const prisma = new PrismaClient();
 
+// Posição fixa no carrossel de categorias (CategoryPills) pras categorias mais populares, nesta
+// ordem exata — todo o resto (Fotop + Foco Radical juntos) vem depois, em ordem alfabética por
+// nome. Não afeta o <select> de filtro (FilterSelects), que ordena por nome sempre, independente
+// de Categoria.ordem.
+const PINNED_CATEGORIA_IDS = [1, 22, 3, 4, 11, 18, 27, 26, 28, 34, 63, 25, 33, 79];
+
+function computeOrdemPorCategoriaId(): Map<number, number> {
+  const todas = [...CATEGORIA_SEED_DATA, ...FOCO_RADICAL_NOVAS_CATEGORIAS];
+  const ordemPorId = new Map<number, number>();
+  PINNED_CATEGORIA_IDS.forEach((id, idx) => ordemPorId.set(id, idx + 1));
+
+  const restantes = todas
+    .filter((c) => !ordemPorId.has(c.id))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+  restantes.forEach((c, idx) => ordemPorId.set(c.id, PINNED_CATEGORIA_IDS.length + idx + 1));
+
+  return ordemPorId;
+}
+
+const ORDEM_POR_CATEGORIA_ID = computeOrdemPorCategoriaId();
+
 // Admin é só um Usuario com perfil=admin — não existe mais tabela separada.
 async function seedAdmin(): Promise<void> {
   const email = process.env.ADMIN_SEED_EMAIL;
@@ -29,7 +50,7 @@ async function seedProvedores(): Promise<{ potofId: number; fotopId: number; foc
   const potof = await prisma.provedor.upsert({
     where: { slug: 'potof' },
     update: {},
-    create: { slug: 'potof', nome: 'Potof', descricao: 'Provedor próprio do potof.', proprio: true },
+    create: { slug: 'potof', nome: 'Potof', descricao: 'Potof', proprio: true },
   });
   const fotop = await prisma.provedor.upsert({
     where: { slug: 'fotop' },
@@ -56,10 +77,11 @@ async function seedProvedores(): Promise<{ potofId: number; fotopId: number; foc
 // Categoria.id fica alinhado a eles em vez de autoincrement livre.
 async function seedCategorias(): Promise<void> {
   for (const item of CATEGORIA_SEED_DATA) {
+    const ordem = ORDEM_POR_CATEGORIA_ID.get(item.id) ?? 0;
     await prisma.categoria.upsert({
       where: { id: item.id },
-      update: { slug: item.slug, nome: item.nome },
-      create: { id: item.id, slug: item.slug, nome: item.nome },
+      update: { slug: item.slug, nome: item.nome, ordem },
+      create: { id: item.id, slug: item.slug, nome: item.nome, ordem },
     });
   }
   console.log(`Categorias seed: ${CATEGORIA_SEED_DATA.length}`);
@@ -86,10 +108,11 @@ async function seedCategoriasProvedores(fotopId: number): Promise<void> {
 // identidade usado pro Fotop.
 async function seedFocoRadicalCategorias(): Promise<void> {
   for (const item of FOCO_RADICAL_NOVAS_CATEGORIAS) {
+    const ordem = ORDEM_POR_CATEGORIA_ID.get(item.id) ?? 0;
     await prisma.categoria.upsert({
       where: { id: item.id },
-      update: { slug: item.slug, nome: item.nome, icone: item.icone ?? null },
-      create: { id: item.id, slug: item.slug, nome: item.nome, icone: item.icone ?? null },
+      update: { slug: item.slug, nome: item.nome, icone: item.icone ?? null, ordem },
+      create: { id: item.id, slug: item.slug, nome: item.nome, icone: item.icone ?? null, ordem },
     });
   }
   console.log(`Categorias seed (Foco Radical): ${FOCO_RADICAL_NOVAS_CATEGORIAS.length}`);

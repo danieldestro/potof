@@ -155,6 +155,12 @@
   border-bottom: none;
 }
 
+.admin-table__icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 .admin-thumb {
   width: 48px;
   height: 48px;

@@ -8,6 +8,8 @@ const createSchema = z.object({
   slug: z.string().trim().min(1),
   nome: z.string().trim().min(1),
   descricao: optionalText,
+  icone: optionalText,
+  ordem: z.coerce.number().int().optional(),
   ativo: z.boolean().optional(),
 });
 

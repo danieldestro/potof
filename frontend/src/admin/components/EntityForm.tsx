@@ -3,7 +3,16 @@ import { toDateInputValue, toDateTimeInputValue } from '../formatters';
 
 export type SelectOption = { value: string | number; label: string };
 
-export type EntityFieldType = 'text' | 'email' | 'password' | 'textarea' | 'boolean' | 'date' | 'datetime' | 'select';
+export type EntityFieldType =
+  | 'text'
+  | 'number'
+  | 'email'
+  | 'password'
+  | 'textarea'
+  | 'boolean'
+  | 'date'
+  | 'datetime'
+  | 'select';
 
 export interface EntityField {
   key: string;
@@ -95,6 +104,15 @@ function renderInput(
           required={field.required}
           placeholder={field.placeholder}
           autoComplete="new-password"
+        />
+      );
+    case 'number':
+      return (
+        <input
+          type="number"
+          value={value === undefined || value === null ? '' : (value as number)}
+          onChange={(e) => setField(field.key, e.target.value === '' ? null : Number(e.target.value))}
+          required={field.required}
         />
       );
     case 'text':

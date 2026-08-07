@@ -17,7 +17,10 @@ const STATE_FILTER_OPTIONS = ESTADOS.map((e) => ({ id: e.id, label: e.descricao 
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categorias } = useCategorias();
+  // Ordem do carrossel (CategoryPills) vem da API (Categoria.ordem, ver backend/src/routes/categorias.ts);
+  // o <select> de filtro (FilterSelects) sempre lista em ordem alfabética, independente disso.
   const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome, icone: c.icone }));
+  const categoryOptionsAlpha = [...categoryOptions].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   const { provedores } = useProvedores();
   const providerOptions = provedores.map((p) => ({ id: String(p.id), label: p.nome }));
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('categoria') ?? 'all');
@@ -81,7 +84,7 @@ export function ExplorePage() {
 
       <div className="explore-page__filters">
         <FilterSelects
-          categories={categoryOptions}
+          categories={categoryOptionsAlpha}
           states={STATE_FILTER_OPTIONS}
           providers={providerOptions}
           categoryFilter={categoryFilter}

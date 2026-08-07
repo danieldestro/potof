@@ -27,6 +27,8 @@ export interface Categoria {
   slug: string;
   nome: string;
   descricao: string | null;
+  icone: string | null;
+  ordem: number;
   ativo: boolean;
   createdAt: string;
   updatedAt: string;

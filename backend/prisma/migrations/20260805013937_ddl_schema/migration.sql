@@ -45,6 +45,7 @@ CREATE TABLE `categorias` (
     `nome` VARCHAR(200) NOT NULL,
     `descricao` TEXT NULL,
     `icone` VARCHAR(200) NULL,
+    `ordem` INTEGER NOT NULL DEFAULT 0,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
