@@ -120,7 +120,10 @@ model Evento {
   provedor         Provedor @relation(fields: [provedorId], references: [id])
   idEventoProvedor String?  @map("id_evento_provedor")
 
-  urlSite   String?  @map("url_site")
+  // TEXT em vez de VARCHAR: URL do evento no site do provedor, montada a partir do slug/path
+  // que o Foco Radical gera do nome do evento — tamanho tão imprevisível quanto o de urlCapa
+  // logo abaixo, e um VARCHAR(200) já estourou num sync completo (ver focoRadicalAdapter.ts).
+  urlSite   String?  @db.Text @map("url_site")
   // VARCHAR(191) (o padrão do Prisma) estourou com URLs de capa do Foco Radical baseadas no
   // nome original do arquivo enviado pelo organizador do evento — não tem tamanho previsível.
   urlCapa   String?  @db.VarChar(500) @map("url_capa")

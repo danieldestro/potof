@@ -227,10 +227,17 @@ async function syncDates(dates: string[], provedor: Provedor, log: FastifyBaseLo
     pageCount = _meta.pageCount || 1;
 
     for (const item of items) {
-      const outcome = await upsertCompetition(item, provedor, log);
-      if (outcome === 'created') totals.created += 1;
-      else if (outcome === 'updated') totals.updated += 1;
-      else totals.skipped += 1;
+      try {
+        const outcome = await upsertCompetition(item, provedor, log);
+        if (outcome === 'created') totals.created += 1;
+        else if (outcome === 'updated') totals.updated += 1;
+        else totals.skipped += 1;
+      } catch (err) {
+        // Um registro ruim isolado (ex: URL do evento maior que o limite da coluna) não pode
+        // derrubar o sweep inteiro — loga e segue, igual às outras validações acima.
+        log.warn({ err, id: item.id, nome: item.name }, 'sync foco radical: falha ao salvar evento, pulado');
+        totals.skipped += 1;
+      }
     }
 
     page += 1;

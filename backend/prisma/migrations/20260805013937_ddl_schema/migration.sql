@@ -83,7 +83,7 @@ CREATE TABLE `eventos` (
     `search_name` BOOLEAN NOT NULL DEFAULT false,
     `provedor_id` INTEGER NOT NULL,
     `id_evento_provedor` VARCHAR(200) NULL,
-    `url_site` VARCHAR(200) NULL,
+    `url_site` TEXT NULL,
     `url_capa` VARCHAR(500) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
