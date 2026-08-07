@@ -6,19 +6,25 @@ interface FilterOption {
 interface FilterSelectsProps {
   categories: FilterOption[];
   states: FilterOption[];
+  providers: FilterOption[];
   categoryFilter: string;
   stateFilter: string;
+  providerFilter: string;
   onCategoryChange: (value: string) => void;
   onStateChange: (value: string) => void;
+  onProviderChange: (value: string) => void;
 }
 
 export function FilterSelects({
   categories,
   states,
+  providers,
   categoryFilter,
   stateFilter,
+  providerFilter,
   onCategoryChange,
   onStateChange,
+  onProviderChange,
 }: FilterSelectsProps) {
   return (
     <div className="filter-selects">
@@ -43,6 +49,18 @@ export function FilterSelects({
         {states.map((opt) => (
           <option key={opt.id} value={opt.id}>
             {opt.id}
+          </option>
+        ))}
+      </select>
+      <select
+        className="potof-pill-select"
+        value={providerFilter}
+        onChange={(e) => onProviderChange(e.target.value)}
+      >
+        <option value="all">Todos Provedores</option>
+        {providers.map((opt) => (
+          <option key={opt.id} value={opt.id}>
+            {opt.label}
           </option>
         ))}
       </select>

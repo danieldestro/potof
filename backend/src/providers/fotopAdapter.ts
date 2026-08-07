@@ -9,18 +9,12 @@ import {
   FOTOP_PHOTOS_BASE_URL,
 } from '../fotop/fotopClient';
 import { parseNoResultsMessage, parsePhotoGrid, type Photo } from '../fotop/photoParser';
+import { eventoDataChanged, requireIdEventoProvedor } from './providerUtils';
 import type { EventoComProvedor, FotosResult, ProviderAdapter, SelfieResult, SyncOptions, SyncResult } from './types';
 
 const MAX_PHOTO_PAGES = 20;
 const MAX_SYNC_PAGES = 50;
 const FOTOP_LIST_PAGE_SIZE = 40;
-
-function requireIdEventoProvedor(evento: EventoComProvedor): string {
-  if (!evento.idEventoProvedor) {
-    throw new Error(`Evento ${evento.id} (provedor Fotop) sem idEventoProvedor configurado.`);
-  }
-  return evento.idEventoProvedor;
-}
 
 async function sendSelfie(
   evento: EventoComProvedor,
@@ -28,7 +22,7 @@ async function sendSelfie(
   file: { buffer: Buffer; filename: string; mimeType: string },
   log: FastifyBaseLogger
 ): Promise<SelfieResult> {
-  const fotopEventId = requireIdEventoProvedor(evento);
+  const fotopEventId = requireIdEventoProvedor(evento, 'Fotop');
   await ensureEventSession(sessionId, fotopEventId, log);
   return fotopSendSelfie(sessionId, fotopEventId, file, log);
 }
@@ -41,7 +35,7 @@ async function fetchPhotos(
   sessionId: string,
   log: FastifyBaseLogger
 ): Promise<FotosResult> {
-  const fotopEventId = requireIdEventoProvedor(evento);
+  const fotopEventId = requireIdEventoProvedor(evento, 'Fotop');
   await ensureEventSession(sessionId, fotopEventId, log);
 
   const photos: Photo[] = [];
@@ -139,7 +133,9 @@ async function syncEventos(provedor: Provedor, log: FastifyBaseLogger, _options:
       });
 
       if (existing) {
-        await prisma.evento.update({ where: { id: existing.id }, data });
+        if (eventoDataChanged(existing, data)) {
+          await prisma.evento.update({ where: { id: existing.id }, data });
+        }
         updated += 1;
       } else {
         await prisma.evento.create({

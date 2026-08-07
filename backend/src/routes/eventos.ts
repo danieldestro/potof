@@ -69,11 +69,21 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
       dataInicio?: string;
       dataFim?: string;
       nome_evento?: string;
+      provedor?: string;
     };
   }>('/api/eventos/busca', async (request, reply) => {
-    const { pag, estado, cat, dataInicio, dataFim, nome_evento: nomeEvento } = request.query;
+    const { pag, estado, cat, dataInicio, dataFim, nome_evento: nomeEvento, provedor } = request.query;
     const page = Math.max(1, Number.parseInt(pag ?? '1', 10) || 1);
-    const log = request.log.child({ route: 'eventos-busca', page, estado, cat, dataInicio, dataFim, nomeEvento });
+    const log = request.log.child({
+      route: 'eventos-busca',
+      page,
+      estado,
+      cat,
+      dataInicio,
+      dataFim,
+      nomeEvento,
+      provedor,
+    });
 
     const booleanExpr = nomeEvento ? buildBooleanExpression(nomeEvento) : null;
 
@@ -87,6 +97,7 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
         const conditions: Prisma.Sql[] = [Prisma.sql`ativo = 1`];
         if (estado) conditions.push(Prisma.sql`uf = ${estado}`);
         if (cat) conditions.push(Prisma.sql`categoria_id = ${Number.parseInt(cat, 10)}`);
+        if (provedor) conditions.push(Prisma.sql`provedor_id = ${Number.parseInt(provedor, 10)}`);
         if (dataInicio) conditions.push(Prisma.sql`data_hora >= ${new Date(`${dataInicio}T00:00:00`)}`);
         if (dataFim) conditions.push(Prisma.sql`data_hora <= ${new Date(`${dataFim}T23:59:59`)}`);
         conditions.push(Prisma.sql`${FULLTEXT_MATCH} AGAINST(${booleanExpr} IN BOOLEAN MODE)`);
@@ -110,6 +121,7 @@ export async function eventosRoutes(app: FastifyInstance): Promise<void> {
         const where: Prisma.EventoWhereInput = { ativo: true };
         if (estado) where.uf = estado;
         if (cat) where.categoriaId = Number.parseInt(cat, 10);
+        if (provedor) where.provedorId = Number.parseInt(provedor, 10);
         if (dataInicio || dataFim) {
           where.dataHora = {
             ...(dataInicio ? { gte: new Date(`${dataInicio}T00:00:00`) } : {}),

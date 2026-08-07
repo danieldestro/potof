@@ -1,6 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import type { Provedor } from '@prisma/client';
 import { prisma } from '../db/prisma';
+import { rebuildEventosFulltextIndex } from '../db/fulltextMaintenance';
 import { getAdapter } from './registry';
 import type { SyncOptions, SyncResult } from './types';
 
@@ -31,6 +32,14 @@ export async function runProviderSync(
         ultimaSincronizacaoResultado: `OK (${modo}): ${result.created} criados, ${result.updated} atualizados, ${result.skipped} pulados.`,
       },
     });
+
+    // Só depois de sync completo — é a rajada de UPDATEs (varre o catálogo inteiro do provedor)
+    // que reproduziu a degradação do índice FULLTEXT investigada, não o ciclo incremental
+    // frequente. Ver comentário em fulltextMaintenance.ts.
+    if (options.full) {
+      await rebuildEventosFulltextIndex(log);
+    }
+
     return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro desconhecido.';

@@ -8,6 +8,7 @@ import { EventSummaryCard } from '../components/EventSummaryCard';
 import { useEventosBusca, toApiFilter } from '../hooks/useEventosBusca';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useCategorias } from '../hooks/useCategorias';
+import { useProvedores } from '../hooks/useProvedores';
 import { getUserPreferences, setUserPreferredCategoria, setUserPreferredEstado } from '../lib/userPreferences';
 import type { DateRange } from '../lib/dateRanges';
 
@@ -17,7 +18,10 @@ export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categorias } = useCategorias();
   const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome }));
+  const { provedores } = useProvedores();
+  const providerOptions = provedores.map((p) => ({ id: String(p.id), label: p.nome }));
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('categoria') ?? 'all');
+  const [providerFilter, setProviderFilter] = useState(searchParams.get('provedor') ?? 'all');
   // Same 3-tier mechanism as Home: search filter (this page's own state, seeded from the URL
   // if a link brought one along) → user_preferences in localStorage → app default.
   const [stateFilter, setStateFilter] = useState(
@@ -30,6 +34,7 @@ export function ExplorePage() {
   const { events, loading, loadingMore, error, hasMore, loadMore } = useEventosBusca({
     estado: toApiFilter(stateFilter),
     cat: toApiFilter(categoryFilter),
+    provedor: toApiFilter(providerFilter),
     nomeEvento: debouncedSearch.trim() || undefined,
     dataInicio: dateRange?.dataInicio,
     dataFim: dateRange?.dataFim,
@@ -55,6 +60,19 @@ export function ExplorePage() {
     setUserPreferredEstado(value);
   }
 
+  function handleProviderFilterChange(value: string) {
+    setProviderFilter(value);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value === 'all') {
+        next.delete('provedor');
+      } else {
+        next.set('provedor', value);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className="explore-page">
       <h1>Todos os eventos</h1>
@@ -65,10 +83,13 @@ export function ExplorePage() {
         <FilterSelects
           categories={categoryOptions}
           states={STATE_FILTER_OPTIONS}
+          providers={providerOptions}
           categoryFilter={categoryFilter}
           stateFilter={stateFilter}
+          providerFilter={providerFilter}
           onCategoryChange={handleCategoryFilterChange}
           onStateChange={handleStateFilterChange}
+          onProviderChange={handleProviderFilterChange}
         />
         <DateRangeFilter onChange={setDateRange} />
         <input

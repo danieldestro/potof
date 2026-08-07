@@ -1,4 +1,4 @@
-import type { Categoria, EventHeaderInfo, EventNameSuggestion, EventSummary, Photo } from '../types';
+import type { Categoria, EventHeaderInfo, EventNameSuggestion, EventSummary, Photo, Provedor } from '../types';
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -25,6 +25,7 @@ export interface FetchEventosParams {
   dataInicio?: string;
   dataFim?: string;
   nomeEvento?: string;
+  provedor?: string;
 }
 
 export function fetchEventos({
@@ -34,6 +35,7 @@ export function fetchEventos({
   dataInicio,
   dataFim,
   nomeEvento,
+  provedor,
 }: FetchEventosParams): Promise<{ page: number; events: EventSummary[]; hasMore: boolean }> {
   const params = new URLSearchParams({ pag: String(page) });
   if (estado) params.set('estado', estado);
@@ -41,6 +43,7 @@ export function fetchEventos({
   if (dataInicio) params.set('dataInicio', dataInicio);
   if (dataFim) params.set('dataFim', dataFim);
   if (nomeEvento) params.set('nome_evento', nomeEvento);
+  if (provedor) params.set('provedor', provedor);
   return request(`/api/eventos/busca?${params.toString()}`);
 }
 
@@ -79,6 +82,10 @@ export function fetchAppConfig(): Promise<{ features: { aiPhotoEdit: boolean } }
 
 export function fetchCategorias(): Promise<{ categorias: Categoria[] }> {
   return request('/api/categorias');
+}
+
+export function fetchProvedores(): Promise<{ provedores: Provedor[] }> {
+  return request('/api/provedores');
 }
 
 export type AiEffect = 'remove_people' | 'superhero' | 'artistic' | 'fantasy' | 'military';

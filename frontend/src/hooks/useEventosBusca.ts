@@ -14,13 +14,14 @@ export interface UseEventosBuscaParams {
   dataInicio?: string;
   dataFim?: string;
   nomeEvento?: string;
+  provedor?: string;
 }
 
 // Shared page-by-page "carregar mais" mechanism for GET /api/eventos/busca, used by both
 // the home page's recent-events feed and the /eventos browse screen. Any change to the
 // filter params clears the current results and starts over from page 1.
 export function useEventosBusca(params: UseEventosBuscaParams) {
-  const { estado, cat, dataInicio, dataFim, nomeEvento } = params;
+  const { estado, cat, dataInicio, dataFim, nomeEvento, provedor } = params;
 
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [page, setPage] = useState(1);
@@ -37,7 +38,7 @@ export function useEventosBusca(params: UseEventosBuscaParams) {
     setPage(1);
     setHasMore(false);
 
-    fetchEventos({ page: 1, estado, cat, dataInicio, dataFim, nomeEvento })
+    fetchEventos({ page: 1, estado, cat, dataInicio, dataFim, nomeEvento, provedor })
       .then((res) => {
         if (cancelled) return;
         setEvents(res.events);
@@ -55,12 +56,12 @@ export function useEventosBusca(params: UseEventosBuscaParams) {
     return () => {
       cancelled = true;
     };
-  }, [estado, cat, dataInicio, dataFim, nomeEvento]);
+  }, [estado, cat, dataInicio, dataFim, nomeEvento, provedor]);
 
   async function loadMore() {
     setLoadingMore(true);
     try {
-      const res = await fetchEventos({ page: page + 1, estado, cat, dataInicio, dataFim, nomeEvento });
+      const res = await fetchEventos({ page: page + 1, estado, cat, dataInicio, dataFim, nomeEvento, provedor });
       setEvents((prev) => [...prev, ...res.events]);
       setPage(res.page);
       setHasMore(res.hasMore);

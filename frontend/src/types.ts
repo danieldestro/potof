@@ -54,3 +54,9 @@ export interface Categoria {
   slug: string;
   nome: string;
 }
+
+export interface Provedor {
+  id: number;
+  slug: string;
+  nome: string;
+}

@@ -8,6 +8,7 @@ import { EventNameAutocomplete } from '../components/EventNameAutocomplete';
 import { ViewToggle, type EventsViewMode } from '../components/ViewToggle';
 import { useEventosBusca, toApiFilter } from '../hooks/useEventosBusca';
 import { useCategorias } from '../hooks/useCategorias';
+import { useProvedores } from '../hooks/useProvedores';
 import { getUserPreferences, setUserPreferredCategoria, setUserPreferredEstado } from '../lib/userPreferences';
 
 const STATE_FILTER_OPTIONS = ESTADOS.map((e) => ({ id: e.id, label: e.descricao }));
@@ -17,10 +18,13 @@ export function HomePage() {
   // app default (seeded into localStorage the first time via getUserPreferences itself).
   const [categoryFilter, setCategoryFilter] = useState(() => getUserPreferences().categoria);
   const [stateFilter, setStateFilter] = useState(() => getUserPreferences().estado);
+  const [providerFilter, setProviderFilter] = useState('all');
   const [viewMode, setViewMode] = useState<EventsViewMode>('compact');
   const navigate = useNavigate();
   const { categorias } = useCategorias();
   const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome }));
+  const { provedores } = useProvedores();
+  const providerOptions = provedores.map((p) => ({ id: String(p.id), label: p.nome }));
 
   const {
     events: recentEvents,
@@ -29,7 +33,11 @@ export function HomePage() {
     error,
     hasMore,
     loadMore,
-  } = useEventosBusca({ estado: toApiFilter(stateFilter), cat: toApiFilter(categoryFilter) });
+  } = useEventosBusca({
+    estado: toApiFilter(stateFilter),
+    cat: toApiFilter(categoryFilter),
+    provedor: toApiFilter(providerFilter),
+  });
 
   function handleStateFilterChange(value: string) {
     setStateFilter(value);
@@ -39,6 +47,10 @@ export function HomePage() {
   function handleCategoryFilterChange(value: string) {
     setCategoryFilter(value);
     setUserPreferredCategoria(value);
+  }
+
+  function handleProviderFilterChange(value: string) {
+    setProviderFilter(value);
   }
 
   function goExplore(categoryId?: string) {
@@ -76,10 +88,13 @@ export function HomePage() {
           <FilterSelects
             categories={categoryOptions}
             states={STATE_FILTER_OPTIONS}
+            providers={providerOptions}
             categoryFilter={categoryFilter}
             stateFilter={stateFilter}
+            providerFilter={providerFilter}
             onCategoryChange={handleCategoryFilterChange}
             onStateChange={handleStateFilterChange}
+            onProviderChange={handleProviderFilterChange}
           />
         </div>
 

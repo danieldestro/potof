@@ -165,5 +165,4 @@ ALTER TABLE `fotos` ADD CONSTRAINT `fotos_fotografo_id_fkey` FOREIGN KEY (`fotog
 -- pela busca por nome da Home e de /eventos
 -- (backend/src/routes/eventos.ts), via MATCH(...) AGAINST(...).
 -- Requer innodb_ft_min_token_size=2 (ver docker-compose.yml).
-ALTER TABLE eventos
-  ADD FULLTEXT INDEX eventos_busca_fulltext (nome, local, cidade, uf, descricao);
+ALTER TABLE eventos ADD FULLTEXT INDEX eventos_busca_fulltext (nome, local, cidade, uf, descricao);
