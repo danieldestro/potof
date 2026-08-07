@@ -3,7 +3,7 @@
 -- desenvolvimento: init, merge admin_usuarios->usuarios,
 -- provedor.ultima_sincronizacao, eventos_fulltext, eventos.url_capa
 -- mais largo, categorias_provedores sem unique em categoria_id+provedor_id,
--- tabela configuracoes).
+-- tabela configuracoes, categorias.icone).
 --
 -- Gerado via: prisma migrate diff --from-empty --to-schema-datamodel
 -- prisma/schema.prisma --script (mais o índice FULLTEXT abaixo, hoje também
@@ -22,10 +22,10 @@ CREATE TABLE `configuracoes` (
 -- CreateTable
 CREATE TABLE `provedores` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `slug` VARCHAR(191) NOT NULL,
-    `nome` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(200) NOT NULL,
+    `nome` VARCHAR(200) NOT NULL,
     `descricao` TEXT NULL,
-    `url_site` VARCHAR(191) NULL,
+    `url_site` VARCHAR(200) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `proprio` BOOLEAN NOT NULL DEFAULT false,
     `ultima_sincronizacao_em` DATETIME(3) NULL,
@@ -41,9 +41,10 @@ CREATE TABLE `provedores` (
 -- CreateTable
 CREATE TABLE `categorias` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `slug` VARCHAR(191) NOT NULL,
-    `nome` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(200) NOT NULL,
+    `nome` VARCHAR(200) NOT NULL,
     `descricao` TEXT NULL,
+    `icone` VARCHAR(200) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
@@ -57,7 +58,7 @@ CREATE TABLE `categorias_provedores` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `categoria_id` INTEGER NOT NULL,
     `provedor_id` INTEGER NOT NULL,
-    `id_categoria_provedor` VARCHAR(191) NOT NULL,
+    `id_categoria_provedor` VARCHAR(200) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -68,20 +69,20 @@ CREATE TABLE `categorias_provedores` (
 -- CreateTable
 CREATE TABLE `eventos` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(191) NOT NULL,
+    `nome` VARCHAR(200) NOT NULL,
     `descricao` TEXT NULL,
-    `local` VARCHAR(191) NULL,
+    `local` VARCHAR(200) NULL,
     `data_hora` DATETIME(3) NOT NULL,
-    `cidade` VARCHAR(191) NULL,
-    `uf` VARCHAR(191) NULL,
-    `pais` VARCHAR(191) NULL DEFAULT 'BR',
+    `cidade` VARCHAR(200) NULL,
+    `uf` VARCHAR(200) NULL,
+    `pais` VARCHAR(200) NULL DEFAULT 'BR',
     `categoria_id` INTEGER NOT NULL,
     `search_selfie` BOOLEAN NOT NULL DEFAULT false,
     `search_bib` BOOLEAN NOT NULL DEFAULT false,
     `search_name` BOOLEAN NOT NULL DEFAULT false,
     `provedor_id` INTEGER NOT NULL,
-    `id_evento_provedor` VARCHAR(191) NULL,
-    `url_site` VARCHAR(191) NULL,
+    `id_evento_provedor` VARCHAR(200) NULL,
+    `url_site` VARCHAR(200) NULL,
     `url_capa` VARCHAR(500) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -94,15 +95,15 @@ CREATE TABLE `eventos` (
 -- CreateTable
 CREATE TABLE `usuarios` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
-    `cpf` VARCHAR(191) NULL,
+    `nome` VARCHAR(200) NOT NULL,
+    `email` VARCHAR(200) NOT NULL,
+    `cpf` VARCHAR(200) NULL,
     `data_nascimento` DATE NULL,
-    `cidade` VARCHAR(191) NULL,
-    `uf` VARCHAR(191) NULL,
-    `pais` VARCHAR(191) NULL DEFAULT 'BR',
+    `cidade` VARCHAR(200) NULL,
+    `uf` VARCHAR(200) NULL,
+    `pais` VARCHAR(200) NULL DEFAULT 'BR',
     `perfil` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
-    `senha_hash` VARCHAR(191) NULL,
+    `senha_hash` VARCHAR(200) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
@@ -129,8 +130,8 @@ CREATE TABLE `fotos` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `evento_id` INTEGER NOT NULL,
     `fotografo_id` INTEGER NOT NULL,
-    `url_foto` VARCHAR(191) NOT NULL,
-    `url_thumb` VARCHAR(191) NULL,
+    `url_foto` VARCHAR(200) NOT NULL,
+    `url_thumb` VARCHAR(200) NULL,
     `taken_at` DATETIME(3) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

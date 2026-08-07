@@ -55,6 +55,12 @@ model Categoria {
   slug      String   @unique
   nome      String
   descricao String?  @db.Text
+  // Caminho (relativo ao front, ex: /categoria-icons/treino.svg) do ícone da categoria — nem
+  // toda Categoria tem um: as originais do Fotop usam a fonte de ícones fi-estacao (ver
+  // frontend/src/styles/fi-estacao.css) e ficam com este campo null; as novas trazidas pelo
+  // catálogo do Foco Radical não têm glifo nessa fonte, então usam este ícone próprio (SVGs
+  // baixados do catálogo público de filtros do focoradical.com.br) como alternativa.
+  icone     String?
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

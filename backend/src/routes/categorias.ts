@@ -9,7 +9,7 @@ export async function categoriasRoutes(app: FastifyInstance): Promise<void> {
     const categorias = await prisma.categoria.findMany({
       where: { ativo: true },
       orderBy: { nome: 'asc' },
-      select: { id: true, slug: true, nome: true },
+      select: { id: true, slug: true, nome: true, icone: true },
     });
     return reply.send({ categorias });
   });

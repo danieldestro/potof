@@ -236,6 +236,12 @@
   font-size: 16px;
 }
 
+.category-pill__icon {
+  width: 55%;
+  height: 55%;
+  object-fit: contain;
+}
+
 .category-pill__label {
   font-size: 11.5px;
   font-weight: 700;

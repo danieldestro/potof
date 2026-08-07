@@ -53,6 +53,7 @@ export interface Categoria {
   id: number;
   slug: string;
   nome: string;
+  icone: string | null;
 }
 
 export interface Provedor {

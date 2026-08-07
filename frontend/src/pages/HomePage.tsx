@@ -22,7 +22,7 @@ export function HomePage() {
   const [viewMode, setViewMode] = useState<EventsViewMode>('compact');
   const navigate = useNavigate();
   const { categorias } = useCategorias();
-  const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome }));
+  const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome, icone: c.icone }));
   const { provedores } = useProvedores();
   const providerOptions = provedores.map((p) => ({ id: String(p.id), label: p.nome }));
 

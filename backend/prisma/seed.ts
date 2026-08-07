@@ -88,8 +88,8 @@ async function seedFocoRadicalCategorias(): Promise<void> {
   for (const item of FOCO_RADICAL_NOVAS_CATEGORIAS) {
     await prisma.categoria.upsert({
       where: { id: item.id },
-      update: { slug: item.slug, nome: item.nome },
-      create: { id: item.id, slug: item.slug, nome: item.nome },
+      update: { slug: item.slug, nome: item.nome, icone: item.icone ?? null },
+      create: { id: item.id, slug: item.slug, nome: item.nome, icone: item.icone ?? null },
     });
   }
   console.log(`Categorias seed (Foco Radical): ${FOCO_RADICAL_NOVAS_CATEGORIAS.length}`);

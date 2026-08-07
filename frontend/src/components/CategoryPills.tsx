@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 interface CategoryPillItem {
   id: string;
   label: string;
+  icone?: string | null;
 }
 
 interface CategoryPillsProps {
@@ -13,6 +14,13 @@ interface CategoryPillsProps {
 
 // How much of the visible track to advance per arrow click.
 const SCROLL_STEP_RATIO = 0.8;
+
+// Ids até este valor vêm da taxonomia original do Fotop e têm glifo na fonte fi-estacao (ver
+// frontend/src/styles/fi-estacao.css); acima disso são categorias novas trazidas por outros
+// provedores (ex: Foco Radical), sem glifo nessa fonte — usam cat.icone (SVG próprio) quando
+// disponível. Sem esse corte, ids novos que colidem por acaso com um glifo não-relacionado
+// sobrando da fonte (ex: id 91) renderizariam um ícone errado em vez de nenhum.
+const FOTOP_ICON_FONT_MAX_ID = 80;
 
 export function CategoryPills({ categories, onSelect, size = 'default' }: CategoryPillsProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -66,7 +74,11 @@ export function CategoryPills({ categories, onSelect, size = 'default' }: Catego
             onClick={() => onSelect(cat.id)}
           >
             <span className="category-pill__circle">
-              <i className={`fi-estacao-${cat.id}`} aria-hidden="true" />
+              {cat.icone ? (
+                <img className="category-pill__icon" src={cat.icone} alt="" aria-hidden="true" />
+              ) : Number(cat.id) <= FOTOP_ICON_FONT_MAX_ID ? (
+                <i className={`fi-estacao-${cat.id}`} aria-hidden="true" />
+              ) : null}
             </span>
             <span className="category-pill__label">{cat.label}</span>
           </button>

@@ -17,7 +17,7 @@ const STATE_FILTER_OPTIONS = ESTADOS.map((e) => ({ id: e.id, label: e.descricao 
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categorias } = useCategorias();
-  const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome }));
+  const categoryOptions = categorias.map((c) => ({ id: String(c.id), label: c.nome, icone: c.icone }));
   const { provedores } = useProvedores();
   const providerOptions = provedores.map((p) => ({ id: String(p.id), label: p.nome }));
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('categoria') ?? 'all');
